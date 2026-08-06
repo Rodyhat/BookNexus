@@ -2,34 +2,36 @@ import Button from "../components/Button";
 import { FaArrowRight } from "react-icons/fa";
 const Login = () => {
     return (
-        <div className="flex min-h-screen bg-gray-50 justify-center ">
-            <div className="border border-[#3730A3] flex justify-center space-y-10 items-center flex-col  rounder-lg">
-                <div className="">
-                    <div className="logo flex items-center justify-center">
-                        <img src="/src/assets/logo.png" alt="" className="size-25" />
+        <div className="flex min-h-screen bg-gray-50 justify-center items-center">
+            <div className="border border-[#3730A3] flex justify-center space-y-7 items-center flex-col  rounded-lg w-full max-w-sm bg-white p-8">
+                <div className="flex justify-center flex-col items-center">
+                    <div className="logo">
+                        <img src="/src/assets/logo.png" alt="" className="size-15" />
                     </div>
-                    <h1 className="text-[#3730A3] text-2xl font-semibold text-center">BookNexus</h1>
-                    <p className="text-gray-500 text-center">Sign in to manage your library</p>
+                    <h1 className="text-[#3730A3] text-2xl font-semibold ">BookNexus</h1>
+                    <p className="text-gray-500 text-sm">Sign in to manage your library</p>
                 </div>
-                <form action="">
+                <form action="" className="flex flex-col gap-4 w-full">
                     <div className="flex flex-col">
-                        <label htmlFor="">Email Address</label>
-                        <input type="email" placeholder="Enter your email address" className="outline-0 border-2"/>
+                        <label htmlFor="" className="font-semibold text-[15px]">Email Address</label>
+                        <input type="email" placeholder="Enter your email address" className="outline-0 border border-[#777584] p-2 rounded-sm" />
                     </div>
                     <div className="">
-                        <div className="">
-                            <label htmlFor="">Password</label>
-                            <span>Forgot?</span>
+                        <div className="flex justify-between">
+                            <label htmlFor="" className="font-semibold text-[15px]">Password</label>
+                            <span className="text-[#3730A3] text-[12px]">Forgot?</span>
                         </div>
-                        <input type="password" placeholder="Enter your password" />
+                        <input type="password" placeholder="Enter your password" className="rounded-sm outline-0 border border-[#777584] w-full p-2" />
                     </div>
-                    <div className="flex items-center justify-center ">
-                        <Button type='submit' rightIcon={<FaArrowRight />} className=" border border-red-500">
-                            Sign In
-                        </Button>
-                    </div>
-                </form>
 
+                    <Button type='submit' rightIcon={<FaArrowRight />} className="w-full justify-center">
+                        Sign In
+                    </Button>
+                </form>
+                <div className="pt-8">
+                    <hr />
+                    <p>Dont't have an account? <span className="text-[#3730A3]">Register</span></p>
+                </div>
             </div>
         </div>
 
