@@ -1,9 +1,11 @@
+import * as Yup from 'yup';
 import Button from "../components/Button";
 import { FaArrowRight } from "react-icons/fa";
 const Login = () => {
+    
     return (
-        <div className="flex min-h-screen bg-gray-50 justify-center items-center">
-            <div className="border border-[#3730A3] flex justify-center space-y-7 items-center flex-col  rounded-lg w-full max-w-sm bg-white p-8">
+        <div className="flex min-h-screen bg-gray-50 justify-center py-5 font-sora">
+            <div className="border border-[#c8c4d5] flex  space-y-7 flex-col  rounded-lg w-full max-w-sm bg-white p-8">
                 <div className="flex justify-center flex-col items-center">
                     <div className="logo">
                         <img src="/src/assets/logo.png" alt="" className="size-15" />
@@ -28,8 +30,8 @@ const Login = () => {
                         Sign In
                     </Button>
                 </form>
-                <div className="pt-8">
-                    <hr />
+                <div className="mt-30">
+                    <hr className="border-gray-300"/>
                     <p>Dont't have an account? <span className="text-[#3730A3]">Register</span></p>
                 </div>
             </div>
