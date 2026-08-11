@@ -4,7 +4,7 @@ import '/src/App.css'
 const Navbar = () => {
     return (
         <nav>
-            <div className="w-full flex flex-row justify-between items-center pb-3 page-container">
+            <div className="w-full flex flex-row justify-between items-center page-container">
                 {/*Logo  */}
                 <div className="md:w-15 md:h-15">
                     <img src="/src/assets/logo.png" alt="" className="w-15 h-15" />
@@ -21,7 +21,7 @@ const Navbar = () => {
                 </ul>
             </div>
 
-            <hr className='border border-gray-300' />
+            <hr className='border border-light' />
 
         </nav>
     )

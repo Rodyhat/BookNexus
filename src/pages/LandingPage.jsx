@@ -1,3 +1,4 @@
+import CreateAccount from '../components/CreateAccount';
 import Hero from '../components/Hero';
 import Navbar from '/src/components/Navbar';
 const LandingPage = () => {
@@ -6,6 +7,7 @@ const LandingPage = () => {
             <Navbar />
             <main className='page-container'>
                 <Hero/>
+                <CreateAccount/>
             </main>
         </div>
     )

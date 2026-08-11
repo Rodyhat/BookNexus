@@ -2,3 +2,50 @@
 @import "@fontsource/inter";
 @import "tailwindcss";
 
+@theme {
+  /* Brand */
+  --color-primary: #3730a3;
+  --color-primary-dark: #312e81;
+  --color-primary-light: #e0e7ff;
+
+  /* Secondary */
+  --color-secondary: #f59e0b;
+  --color-secondary-light: #fef3c7;
+
+  /* Status */
+  --color-success: #16a34a;
+  --color-success-light: #dcfce7;
+  --color-success-dark: #166534;
+
+  --color-error: #e11d48;
+  --color-error-light: #ffe4e6;
+  --color-error-dark: #9f1239;
+
+  --color-warning: #f59e0b;
+  --color-warning-light: #fef3c7;
+  --color-warning-dark: #92400e;
+
+  /* Surfaces */
+  --color-background: #f9fafb;
+  --color-surface: #ffffff;
+
+  /* Text */
+  --color-text-primary: #111827;
+  --color-text-secondary: #64748b;
+  --color-text-muted: #94a3b8;
+
+  /* Borders */
+  --color-border: #e2e8f0;
+  --color-border-light: #f1f5f9;
+
+  /* Fonts */
+  --font-heading: "Sora", sans-serif;
+  --font-body: "Inter", sans-serif;
+
+  /* Radius */
+  --radius-ui: 0.5rem;
+  --radius-pill: 9999px;
+
+  /* Shadow */
+  --shadow-floating: 0 4px 20px rgb(0 0 0 / 8%);
+}
