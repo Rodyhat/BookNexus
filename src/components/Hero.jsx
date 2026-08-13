@@ -2,7 +2,7 @@ import { FaSearch } from "react-icons/fa";
 import '/src/App.css';
 const Hero = () => {
     return (
-        <section className="mt-8 min-h-[70vh] md:min-h-[70vh] gap-3 flex flex-col items-center">
+        <section className="mt-8 mb-9 md:min-h-[60vh]  gap-3 flex flex-col items-center">
             <div className="flex flex-col items-center gap-4 max-w-3xl w-full ">
                 <div className="">
                     <img src="/src/assets/logo.png" alt="" className="w-35 h-35" />

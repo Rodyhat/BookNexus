@@ -13,6 +13,8 @@ const variants = {
 
   danger:
     "bg-error text-white hover:bg-error-dark",
+    
+    light: 'bg-white text-primary hover:bg-primary hover:text-white'
 };
 
 const sizes = {
