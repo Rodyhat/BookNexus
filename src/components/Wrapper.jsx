@@ -22,7 +22,7 @@ const Wrapper = ({ children }) => {
         () => {
             const timer = setTimeout(() => {
                 fetchBooks(search)
-            }, 3000);
+            }, 2000);
             return (() => clearTimeout(timer)
             )
         }, [search]

@@ -15,9 +15,9 @@ const TrendList = () => {
                     <h2 className="text-headline-md font-bold">Trending Books</h2>
                     <p className="text-[15px] md:text-[17px] text-light leading-7 font-normal ">
                         Discover what others are reading this week.</p>
-                    <div className="relative w-[50%] ">
+                    <div className="relative w-full lg:w-[50%]">
                         <FaSearch className="absolute top-8 text-gray-500 left-4" />
-                        <input type="text" placeholder="Search trending titles, authors, or subjects..." className="border border-outline-variant ps-10 py-3 w-full outline-primary my-4 rounded" onChange={e => changeSearch(e.target.value)} />
+                        <input type="text" placeholder="Search trending titles, authors, or subjects..." className="border border-outline-variant ps-10 py-3 w-full outline-primary my-4 rounded text-label-sm" onChange={e => changeSearch(e.target.value)} />
                     </div>
                 </div>
                 {/* ALL trending books */}
@@ -36,7 +36,7 @@ const TrendList = () => {
                                 <p className="text-sm text-gray-500">{book.author_name?.join(' , ')}</p>
                             </div>
 
-                            <div className="flex justify-end p-2">
+                            <div className="flex justify-end pe-4 pb-3">
                                 <Button type='submit' className="">Reserve</Button >
                             </div>
                         </div>
@@ -45,6 +45,10 @@ const TrendList = () => {
 
             </section>
 
+            {/* more trending books */}
+            <div className="bg-surface-container-high rounded-2xl  my-4 p-3 text-center">
+                <span>Load More Trending Titles</span>
+            </div>
         </div>
     )
 }
