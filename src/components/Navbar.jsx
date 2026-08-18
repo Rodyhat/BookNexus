@@ -11,7 +11,7 @@ const Navbar = () => {
                 </div>
                 {/* Navigation */}
                 <ul className=" gap-5 hidden md:flex">
-                    <Link> <li>Catalogue</li></Link>
+                    <Link className="text-primary-container"> <li>Catalogue</li></Link>
                     <Link><li>About</li></Link>
                 </ul>
                 {/* Authentication */}
@@ -21,7 +21,7 @@ const Navbar = () => {
                 </ul>
             </div>
 
-            <hr className='border border-light' />
+            <hr className='border-outline-variant' />
 
         </nav>
     )
