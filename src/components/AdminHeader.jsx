@@ -6,7 +6,7 @@ const AdminHeader = () => {
     return (
         <nav className=''>
             <div className="flex justify-between items-center p-5">
-                <button className='md:hidden'>  <FiMenu size={20} /></button>
+                <button className='md:hidden' onClick={}>  <FiMenu size={20} /></button>
                 <div className="flex items-center">
                     <img src={logo} alt="" className='size-10' />
                     <h3 className='font-heading font-bold text-primary-container text-headline-sm'>BookNexus</h3>

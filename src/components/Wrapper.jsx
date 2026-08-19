@@ -6,7 +6,8 @@ const Wrapper = ({ children }) => {
     let [search, setSearch] = useState('')
     let [page, setPage] = useState(1)
     let [books, setBooks] = useState([]);
-    const trendingQuery = "popular fiction";
+    let [sidebarOpen, setSidebarOpen] = useState(false)
+    const trendingQuery = "popular books";
 
     let fetchBooks = async (query, pageNumber = 1) => {
         try {
@@ -55,7 +56,9 @@ const Wrapper = ({ children }) => {
         fetchBooks(query, nextPage)
 
     }
+    const handleSidebar = () => {
 
+    }
     return (
         <AuthContext.Provider value={{}} >
             <BookContext.Provider value={{ search, books, changeSearch, loadMore }}>

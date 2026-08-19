@@ -1,5 +1,5 @@
 import { FaBook, FaUsers } from "react-icons/fa";
-import { FiMenu, FiSettings } from "react-icons/fi";
+import {  FiSettings } from "react-icons/fi";
 import { MdDashboard } from "react-icons/md";
 import { NavLink } from "react-router-dom";
 
@@ -10,8 +10,8 @@ const AdminSidebar = () => {
                 ADMIN PANEL
             </div>
 
-            <nav className="mt-6 flex-1 border">
-                <ul className="flex flex-col gap-2">
+            <nav className="mt-6 flex-1  flex flex-col">
+                <ul className="flex flex-col gap-2 mb-auto">
 
                     {/* Dashboard */}
                     <NavLink
@@ -101,10 +101,13 @@ const AdminSidebar = () => {
                             </>
                         )}
                     </NavLink>
+
+                </ul>
+                <ul className="">
                     {/* Settings */}
                     <NavLink
                         to="/admin/settings"
-                        className="relative border block"
+                        className="relative block"
                     >
                         {({ isActive }) => (
                             <>
@@ -129,7 +132,6 @@ const AdminSidebar = () => {
                         )}
                     </NavLink>
                 </ul>
-
 
             </nav>
 

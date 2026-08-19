@@ -8,6 +8,8 @@ const AdminDashboard = () => {
             <AdminSidebar />
             <div className="flex-1">
                 <AdminHeader />
+
+                {/* content */}
             </div>
         </section>
     )
