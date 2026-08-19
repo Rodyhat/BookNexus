@@ -16,7 +16,7 @@ const Navbar = () => {
                 </ul>
                 {/* Authentication */}
                 <ul className="flex gap-3 items-center md:gap-5">
-                    <Link>  <li>Sign In</li></Link>
+                    <Link to='/signin'>  <li>Sign In</li></Link>
                     <Button type="submit">Register</Button>
                 </ul>
             </div>
