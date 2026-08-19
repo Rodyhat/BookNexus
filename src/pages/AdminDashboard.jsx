@@ -1,10 +1,14 @@
+import AdminHeader from "../components/AdminHeader";
 import AdminSidebar from "../components/AdminSidebar";
 
 const AdminDashboard = () => {
     return (
-        <section>
+        <section className="flex">
             {/* side bar */}
-         <AdminSidebar/>
+            <AdminSidebar />
+            <div className="flex-1">
+                <AdminHeader />
+            </div>
         </section>
     )
 }

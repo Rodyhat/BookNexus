@@ -4,6 +4,7 @@ import { FaArrowRight } from "react-icons/fa";
 import { useFormik } from 'formik';
 import { useNavigate } from 'react-router-dom';
 import logo from '/src/assets/logo.png';
+import MockUsers from '../data/mockUsers';
 const SignIn = () => {
     const formik = useFormik({
         initialValues: {
@@ -16,7 +17,19 @@ const SignIn = () => {
         }),
         onSubmit: values => {
             console.log(values);
-            navigate('/admindashboard')
+            const user = MockUsers.find(account =>
+                account.email.toLocaleLowerCase() === values.email.toLowerCase() &&
+                account.password === values.password
+            )
+            if (!user) {
+                console.log('Invalid Email or Password');
+                return;
+            }
+            if (user.role === 'admin') {
+                navigate('/admin/dashboard')
+            } else {
+                navigate('/');
+            }
         }
     })
     const navigate = useNavigate()
