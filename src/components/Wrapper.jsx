@@ -3,14 +3,28 @@ import { AuthContext, BookContext } from "../context/myContext"
 import axios from "axios";
 
 const Wrapper = ({ children }) => {
-    let [search, setSearch] = useState('bestsellers')
+    let [search, setSearch] = useState('')
+    let [page, setPage] = useState(1)
     let [books, setBooks] = useState([]);
+    const trendingQuery = "popular fiction";
 
-
-    let fetchBooks = async () => {
+    let fetchBooks = async (query, pageNumber = 1) => {
         try {
-            let { data } = await axios.get(`https://openlibrary.org/search.json?q=${encodeURIComponent(search)}&limit=4`);
-            setBooks(data.docs);
+            let { data } = await axios.get(`https://openlibrary.org/search.json?q=${encodeURIComponent(query)}&page=${pageNumber}&limit=4`);
+
+            if (pageNumber === 1) {
+                setBooks(data.docs);
+            } else {
+                setBooks((prevBooks) => {
+                    const existingBooks = new Set(
+                        prevBooks.map(book => book.key)
+                    );
+                    const newBooks = data.docs.filter(
+                        (book) => !existingBooks.has(book.key)
+                    );
+                    return [...prevBooks, ...newBooks]
+                })
+            }
         }
         catch (error) {
             console.log('Error fetching books', error);
@@ -21,8 +35,11 @@ const Wrapper = ({ children }) => {
     useEffect(
         () => {
             const timer = setTimeout(() => {
-                fetchBooks(search)
-            }, 2000);
+                setPage(1)
+                const query = search.trim()
+                    ? search : trendingQuery
+                fetchBooks(query, 1)
+            }, 500);
             return (() => clearTimeout(timer)
             )
         }, [search]
@@ -31,10 +48,17 @@ const Wrapper = ({ children }) => {
         setSearch(value);
     }
 
+    const loadMore = () => {
+        const nextPage = page + 1;
+        setPage(nextPage);
+        const query = search.trim() ? search : trendingQuery
+        fetchBooks(query, nextPage)
+
+    }
 
     return (
         <AuthContext.Provider value={{}} >
-            <BookContext.Provider value={{ search, books, changeSearch }}>
+            <BookContext.Provider value={{ search, books, changeSearch, loadMore }}>
                 {children}
             </BookContext.Provider>
         </AuthContext.Provider>

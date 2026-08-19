@@ -3,11 +3,12 @@ import TrendingNavbar from "../components/TrendingNavbar";
 import { FaSearch } from "react-icons/fa";
 import { BookContext } from "../context/myContext";
 import Button from "../components/Button";
+import { Link } from "react-router-dom";
 const TrendList = () => {
-    const { books } = useContext(BookContext)
-    const { search, changeSearch } = useContext(BookContext)
+    const { search, changeSearch , books, loadMore} = useContext(BookContext)
 
     return (
+        
         <div className="">
             <TrendingNavbar />
             <section className="page-container">
@@ -46,9 +47,9 @@ const TrendList = () => {
             </section>
 
             {/* more trending books */}
-            <div className="bg-surface-container-high rounded-2xl  my-4 p-3 text-center">
-                <span>Load More Trending Titles</span>
-            </div>
+            <button className="mx-auto flex outline-0" onClick={loadMore}>
+                <span className="bg-surface-container-high rounded-2xl  my-4 p-3 ">Load More Trending Titles</span>
+            </button>
         </div>
     )
 }
