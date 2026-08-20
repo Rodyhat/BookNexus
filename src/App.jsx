@@ -8,20 +8,24 @@ import AdminDashboard from "./pages/AdminDashboard";
 import AdminBooks from "./pages/AdminBooks";
 import AdminSettiings from "./pages/AdminSettings";
 import AdminBorrowers from "./pages/AdminBorrowers";
+import AdminLayout from "./components/AdminLayout";
 const App = () => {
   return (
     <Wrapper className='page-content'>
       <Routes>
         {/* public pages */}
-        <Route path="/"element={<LandingPage/>}/>
-        <Route path='/signin' element={<SignIn/>}/>
-        <Route path="/trendinglist" element={<TrendList/>}/>
+        <Route path="/" element={<LandingPage />} />
+        <Route path='/signin' element={<SignIn />} />
+        <Route path="/trendinglist" element={<TrendList />} />
 
         {/* Admin pages */}
-        <Route path="/admin/dashboard" element={<AdminDashboard/>}/>
-        <Route path="/admin/books" element={<AdminBooks/>}/>
-        <Route path="/admin/settings" element={<AdminSettiings/>}/>
-        <Route path="/admin/borrowers" element={<AdminBorrowers/>}/>
+        <Route path="/admin" element={<AdminLayout />}>
+          <Route path="dashboard" element={<AdminDashboard />} />
+          <Route path="books" element={<AdminBooks />} />
+          <Route path="settings" element={<AdminSettiings />} />
+          <Route path="borrowers" element={<AdminBorrowers />} />
+        </Route>
+
       </Routes>
     </Wrapper>
   )

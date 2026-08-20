@@ -1,12 +1,15 @@
 import { useEffect, useState } from "react";
-import { AuthContext, BookContext } from "../context/myContext"
+import { AdminContext, AuthContext, BookContext } from "../context/myContext"
 import axios from "axios";
 
 const Wrapper = ({ children }) => {
     let [search, setSearch] = useState('')
     let [page, setPage] = useState(1)
     let [books, setBooks] = useState([]);
+
+    // Admin sidebar state
     let [sidebarOpen, setSidebarOpen] = useState(false)
+
     const trendingQuery = "popular books";
 
     let fetchBooks = async (query, pageNumber = 1) => {
@@ -45,6 +48,8 @@ const Wrapper = ({ children }) => {
             )
         }, [search]
     )
+
+    // existing book function
     const changeSearch = (value) => {
         setSearch(value);
     }
@@ -56,14 +61,18 @@ const Wrapper = ({ children }) => {
         fetchBooks(query, nextPage)
 
     }
-    const handleSidebar = () => {
 
+    // function that handles setSidebarOpen
+    const handleSidebar = () => {
+        setSidebarOpen(!sidebarOpen)
     }
     return (
         <AuthContext.Provider value={{}} >
-            <BookContext.Provider value={{ search, books, changeSearch, loadMore }}>
-                {children}
-            </BookContext.Provider>
+            <AdminContext.Provider value={{ sidebarOpen, handleSidebar }}>
+                <BookContext.Provider value={{ search, books, changeSearch, loadMore }}>
+                    {children}
+                </BookContext.Provider>
+            </AdminContext.Provider>
         </AuthContext.Provider>
     )
 }
