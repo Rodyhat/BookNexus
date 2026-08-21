@@ -10,7 +10,7 @@ const AdminLayout = () => {
     const { sidebarOpen, handleSidebar } = useContext(AdminContext);
 
     return (
-        <div className="min-h-screen w-full bg-gray-50">
+        <div className="h-screen overflow-hidden bg-gray-50">
 
             {/* Mobile Sidebar */}
             {sidebarOpen && (
@@ -34,22 +34,24 @@ const AdminLayout = () => {
             )}
 
             {/* Desktop */}
-            <div className="hidden lg:flex">
+            <div className="hidden lg:block h-screen">
 
                 <AdminSidebar />
 
-                <div className="min-w-0 flex-1">
+                <div className="ml-64 h-screen overflow-y-auto">
+
                     <AdminHeader />
 
                     <main className="p-6">
                         <Outlet />
                     </main>
+
                 </div>
 
             </div>
 
             {/* Mobile / Tablet */}
-            <div className="lg:hidden">
+            <div className="lg:hidden h-screen overflow-y-auto">
 
                 <AdminHeader />
 

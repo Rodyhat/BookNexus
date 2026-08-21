@@ -5,7 +5,7 @@ import { NavLink } from "react-router-dom";
 
 const AdminSidebar = () => {
     return (
-        <div className="bg-surface-container-low py-10 w-64 ps-7 min-h-screen flex flex-col shrink-0">
+        <div className="bg-surface-container-low py-10 w-64 ps-7 min-h-screen flex flex-col shrink-0 fixed top- left-0 h-screen z-50">
             <div className="shrink-0 text-primary-container font-heading font-bold text-headline-sm">
                 ADMIN PANEL
             </div>

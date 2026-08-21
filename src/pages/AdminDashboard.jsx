@@ -1,6 +1,7 @@
 import { FiAlertTriangle } from "react-icons/fi";
 import { MdCheckCircle, MdLibraryBooks, MdMenuBook } from "react-icons/md";
 import BorrowActivity from "../components/BorrowActivity";
+import QuickAction from "../components/QuickAction";
 
 const AdminDashboard = () => {
     return (
@@ -40,7 +41,13 @@ const AdminDashboard = () => {
                 </div>
 
             </div>
-            <BorrowActivity/>
+            <div className="grid grid-cols-3 gap-5">
+                <BorrowActivity />
+                <div className="grid gap-5">
+                    <QuickAction />
+                    <QuickAction />
+                </div>
+            </div>
         </section>
     )
 }
