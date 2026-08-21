@@ -12,7 +12,7 @@ const Trending = () => {
                 <Link to='/trendinglist' className="flex items-center text-primary text-[14px]">View All <FaArrowRight /></Link>
             </div>
             <div className="mt-7 grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
-                {books.map((book, index) => (
+                {books.map((book) => (
                     <div key={book.key} className="bg-gray shadow-md rounded">
                         <div className="bg-[#F2F2F2] p-4">
                             <img src={`https://covers.openlibrary.org/b/id/${book.cover_i}-M.jpg`} alt={book.title} className="w-full h-64 object-contain" />

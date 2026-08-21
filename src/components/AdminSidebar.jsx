@@ -9,12 +9,9 @@ const AdminSidebar = () => {
             <div className="shrink-0 text-primary-container font-heading font-bold text-headline-sm">
                 ADMIN PANEL
             </div>
-
             <nav className="mt-6 flex flex-1 flex-col">
-
                 {/* Main navigation */}
                 <ul className="flex flex-col gap-2">
-
                     {/* Dashboard */}
                     <NavLink
                         to="/admin/dashboard"
@@ -32,8 +29,8 @@ const AdminSidebar = () => {
 
                                 <div
                                     className={`relative flex items-center gap-4 py-2 ${isActive
-                                            ? "text-primary-container"
-                                            : "text-on-surface"
+                                        ? "text-primary-container"
+                                        : "text-on-surface"
                                         }`}
                                 >
                                     <MdDashboard />
@@ -60,8 +57,8 @@ const AdminSidebar = () => {
 
                                 <div
                                     className={`relative flex items-center gap-4 py-2 ${isActive
-                                            ? "text-primary-container"
-                                            : "text-on-surface"
+                                        ? "text-primary-container"
+                                        : "text-on-surface"
                                         }`}
                                 >
                                     <FaBook />
@@ -88,8 +85,8 @@ const AdminSidebar = () => {
 
                                 <div
                                     className={`relative flex items-center gap-4 py-2 ${isActive
-                                            ? "text-primary-container"
-                                            : "text-on-surface"
+                                        ? "text-primary-container"
+                                        : "text-on-surface"
                                         }`}
                                 >
                                     <FaUsers />
@@ -119,8 +116,8 @@ const AdminSidebar = () => {
 
                                 <div
                                     className={`relative flex items-center gap-4 py-2 ${isActive
-                                            ? "text-primary-container"
-                                            : "text-on-surface"
+                                        ? "text-primary-container"
+                                        : "text-on-surface"
                                         }`}
                                 >
                                     <FiSettings />
