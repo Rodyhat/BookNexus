@@ -1,9 +1,9 @@
 import { useContext, useEffect } from "react";
 import { FaArrowRight } from "react-icons/fa";
 import { BookContext } from "../context/myContext";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 const Trending = () => {
-
+    let navigate = useNavigate();
     let { books } = useContext(BookContext);
     return (
         <section className="mt-10">

@@ -9,6 +9,7 @@ import AdminBooks from "./pages/AdminBooks";
 import AdminSettiings from "./pages/AdminSettings";
 import AdminBorrowers from "./pages/AdminBorrowers";
 import AdminLayout from "./components/AdminLayout";
+import BookDetails from "./pages/BookDetails";
 const App = () => {
   return (
     <Wrapper className='page-content'>
@@ -17,6 +18,7 @@ const App = () => {
         <Route path="/" element={<LandingPage />} />
         <Route path='/signin' element={<SignIn />} />
         <Route path="/trendinglist" element={<TrendList />} />
+        <Route path='/bookdetails/:bookId' element={<BookDetails/>}></Route>
 
         {/* Admin pages */}
         <Route path="/admin" element={<AdminLayout />}>

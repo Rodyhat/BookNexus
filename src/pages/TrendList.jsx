@@ -3,12 +3,12 @@ import TrendingNavbar from "../components/TrendingNavbar";
 import { FaSearch } from "react-icons/fa";
 import { BookContext } from "../context/myContext";
 import Button from "../components/Button";
-import { Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 const TrendList = () => {
-    const { search, changeSearch , books, loadMore} = useContext(BookContext)
-
+    const { search, changeSearch, books, loadMore } = useContext(BookContext)
+    const navigate = useNavigate();
     return (
-        
+
         <div className="">
             <TrendingNavbar />
             <section className="page-container">
@@ -38,7 +38,15 @@ const TrendList = () => {
                             </div>
 
                             <div className="flex justify-end pe-4 pb-3">
-                                <Button type='submit' className="">Reserve</Button >
+                                <Button
+                                    type="button"
+                                    onClick={() => {
+                                        const workId = book.key.split("/").pop();
+                                        navigate(`/bookdetails/${workId}`);
+                                    }}
+                                >
+                                    Reserve
+                                </Button>
                             </div>
                         </div>
                     ))}

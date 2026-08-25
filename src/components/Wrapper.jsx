@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { AdminContext, AuthContext, BookContext } from "../context/myContext"
 import axios from "axios";
 
@@ -66,10 +66,24 @@ const Wrapper = ({ children }) => {
     const handleSidebar = () => {
         setSidebarOpen(!sidebarOpen)
     }
+
+    // fetch one specific book
+    const fetchBookDetails = useCallback(async (workId) => {
+        try {
+            const response = await axios.get(
+                `https://openlibrary.org/works/${workId}.json`
+            );
+
+            return response.data;
+        } catch (error) {
+            console.error("Error fetching book details:", error);
+            throw error;
+        }
+    }, []);
     return (
         <AuthContext.Provider value={{}} >
             <AdminContext.Provider value={{ sidebarOpen, handleSidebar }}>
-                <BookContext.Provider value={{ search, books, changeSearch, loadMore }}>
+                <BookContext.Provider value={{ search, books, changeSearch, loadMore, fetchBookDetails }}>
                     {children}
                 </BookContext.Provider>
             </AdminContext.Provider>

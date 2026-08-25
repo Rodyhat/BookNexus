@@ -63,7 +63,7 @@ const SignIn = () => {
                         </div>
                         <input type={showPassword ? 'text' : 'password'} name='password' onChange={formik.handleChange} onBlur={formik.handleBlur} placeholder="Enter your password" className="rounded-sm outline-0 border text-sm border-outline-variant w-full p-2 pr-10" />
                         {formik.touched.password && formik.errors.password && (<p className='text-error text-sm'>{formik.errors.password}</p>)}
-                        <button onClick={() => setShowPassword(!showPassword)} className="absolute top-8 right-3" arial-label={showPassword ? 'Hide password' : 'Show Password'}>
+                        <button onClick={() => setShowPassword(!showPassword)} type='button' className="absolute top-8 right-3" aria-label={showPassword ? 'Hide password' : 'Show Password'}>
                             {showPassword ? <FiEyeOff size={18} /> : <FiEye className='' size={18} />}
                         </button>
                     </div>
