@@ -4,7 +4,7 @@ import { FaArrowLeft } from "react-icons/fa";
 import '/src/App.css'
 const DetailsNavbar = () => {
     return (
-        <nav>
+        <nav className="bg-[#F9F9FF]">
             <div className="w-full flex justify-between items-center page-container">
                 {/*Logo  */}
                 <div className="md:w-15 md:h-15">

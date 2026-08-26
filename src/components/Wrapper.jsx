@@ -68,18 +68,37 @@ const Wrapper = ({ children }) => {
     }
 
     // fetch one specific book
-    const fetchBookDetails = useCallback(async (workId) => {
-        try {
-            const response = await axios.get(
-                `https://openlibrary.org/works/${workId}.json`
-            );
+ const fetchBookDetails = useCallback(async (workId) => {
+    try {
+        // Get the book/work details
+        const response = await axios.get(
+            `https://openlibrary.org/works/${workId}.json`
+        );
 
-            return response.data;
-        } catch (error) {
-            console.error("Error fetching book details:", error);
-            throw error;
-        }
-    }, []);
+        const book = response.data;
+
+        // Get the author names
+        const authors = await Promise.all(
+            (book.authors || []).map(async (author) => {
+                const authorKey = author.author.key;
+
+                const authorResponse = await axios.get(
+                    `https://openlibrary.org${authorKey}.json`
+                );
+
+                return authorResponse.data.name;
+            })
+        );
+
+        return {
+            ...book,
+            author_name: authors,
+        };
+    } catch (error) {
+        console.error("Error fetching book details:", error);
+        throw error;
+    }
+}, []);
     return (
         <AuthContext.Provider value={{}} >
             <AdminContext.Provider value={{ sidebarOpen, handleSidebar }}>
