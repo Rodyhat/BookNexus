@@ -10,6 +10,7 @@ import AdminSettiings from "./pages/AdminSettings";
 import AdminBorrowers from "./pages/AdminBorrowers";
 import AdminLayout from "./components/AdminLayout";
 import BookDetails from "./pages/BookDetails";
+import UserDashboard from "./pages/UserDashboard";
 const App = () => {
   return (
     <Wrapper className='page-content'>
@@ -26,6 +27,10 @@ const App = () => {
           <Route path="books" element={<AdminBooks />} />
           <Route path="settings" element={<AdminSettiings />} />
           <Route path="borrowers" element={<AdminBorrowers />} />
+        </Route>
+
+        <Route>
+          <Route path="/userdashboard" element={<UserDashboard/>}></Route>
         </Route>
 
       </Routes>

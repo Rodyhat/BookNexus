@@ -66,7 +66,7 @@ const BookDetails = () => {
                         </div>
 
                         {/* BOOK INFORMATION */}
-                        <div className="flex-1 min-w-0">
+                        <div className="flex-1 min-w-0 ">
                             <div className="flex justify-between items-center">
                                 <h1 className="text-3xl font-bold mb-4">
                                     {book.title}
@@ -136,11 +136,11 @@ const BookDetails = () => {
                             </div>
 
                             <div className="flex gap-4">
-                                <button className="bg-primary text-white px-6 py-3 rounded flex items-center gap-1 text-sm">
-                                    <FaBook/>
+                                <button className="bg-primary text-white px-6 py-3 flex items-center gap-1 text-sm font-semibold rounded">
+                                    <FaBook />
                                     Borrow Material
                                 </button>
-                                <button className="bg-[#F9F9FF] text-black px-6 py-3 rounded border border-outline-variant text-sm">
+                                <button className="bg-[#F9F9FF] text-black px-6 py-3 rounded border border-outline-variant text-sm font-semibold ">
                                     Preview Extract
                                 </button>
                             </div>
