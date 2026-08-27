@@ -23,9 +23,26 @@ const Wrapper = ({ children }) => {
     const [user, setUser] = useState(null);
     const [role, setRole] = useState(null); 
     const [isAuthenticated, setIsAuthenticated] = useState(false);
+    const [isLoading, setIsLoading] = useState(true); // Added loading state for auth check
 
     // --- Admin Sidebar State ---
     const [sidebarOpen, setSidebarOpen] = useState(false);
+
+    // Initial Auth Check (Simulated)
+    useEffect(() => {
+        // Simulate checking for a stored session (e.g., from localStorage)
+        const checkAuth = async () => {
+            // In a real app with Supabase, you'd check supabase.auth.getSession()
+            setIsLoading(true);
+            
+            // Artificial delay to simulate network check
+            setTimeout(() => {
+                setIsLoading(false);
+            }, 500);
+        };
+
+        checkAuth();
+    }, []);
 
     // --- Book Fetching Logic ---
     const fetchBooks = async (query, pageNumber = 1) => {
@@ -108,7 +125,7 @@ const Wrapper = ({ children }) => {
     };
 
     return (
-        <AuthContext.Provider value={{ isAuthenticated, user, role, login, logout }}>
+        <AuthContext.Provider value={{ isAuthenticated, user, role, isLoading, login, logout }}>
             <BookContext.Provider value={{ search, books, changeSearch, loadMore, fetchBookDetails }}>
                 <AdminContext.Provider value={{ sidebarOpen, handleSidebar }}>
                     <UserContext.Provider value={{ profile: user, history: [] }}>

@@ -11,6 +11,10 @@ import AdminBorrowers from "./pages/AdminBorrowers";
 import AdminLayout from "./components/AdminLayout";
 import BookDetails from "./pages/BookDetails";
 import UserDashboard from "./pages/UserDashboard";
+import UserLayout from "./components/UserLayout";
+import UserBooks from "./pages/UserBooks";
+import UserProfile from "./pages/UserProfile";
+import ProtectedRoute from "./pages/ProtectedRoute";
 const App = () => {
   return (
     <Wrapper className='page-content'>
@@ -19,19 +23,28 @@ const App = () => {
         <Route path="/" element={<LandingPage />} />
         <Route path='/signin' element={<SignIn />} />
         <Route path="/trendinglist" element={<TrendList />} />
-        <Route path='/bookdetails/:bookId' element={<BookDetails/>}></Route>
+        <Route path='/bookdetails/:bookId' element={<BookDetails />}></Route>
 
         {/* Admin pages */}
-        <Route path="/admin" element={<AdminLayout />}>
-          <Route path="dashboard" element={<AdminDashboard />} />
-          <Route path="books" element={<AdminBooks />} />
-          <Route path="settings" element={<AdminSettiings />} />
-          <Route path="borrowers" element={<AdminBorrowers />} />
+        <Route path="" element={<ProtectedRoute />}>
+          <Route path="/admin" element={<AdminLayout />}>
+            <Route path="dashboard" element={<AdminDashboard />} />
+            <Route path="books" element={<AdminBooks />} />
+            <Route path="settings" element={<AdminSettiings />} />
+            <Route path="borrowers" element={<AdminBorrowers />} />
+          </Route>
         </Route>
 
-        <Route>
-          <Route path="/userdashboard" element={<UserDashboard/>}></Route>
+
+        {/* User pages */}
+        <Route path="" element={<ProtectedRoute/>}>
+          <Route path="user" element={<UserLayout />}>
+            <Route path="dashboard" element={<UserDashboard />}></Route>
+            <Route path="mybooks" element={<UserBooks />}></Route>
+            <Route path="profile" element={<UserProfile />}></Route>
+          </Route>
         </Route>
+
 
       </Routes>
     </Wrapper>
