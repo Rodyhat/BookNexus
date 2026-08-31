@@ -16,9 +16,11 @@ import UserBooks from "./pages/UserBooks";
 import UserProfile from "./pages/UserProfile";
 import ProtectedRoute from "./pages/ProtectedRoute";
 import AddEditBook from "./pages/AddEditBooks";
+import { Toaster } from "react-hot-toast";
 const App = () => {
   return (
     <Wrapper className='page-content'>
+      <Toaster position="top-right" toastOptions={{ duration: 3000, }} />
       <Routes>
         {/* public pages */}
         <Route path="/" element={<LandingPage />} />
@@ -39,7 +41,7 @@ const App = () => {
 
 
         {/* User pages */}
-        <Route path="" element={<ProtectedRoute/>}>
+        <Route path="" element={<ProtectedRoute />}>
           <Route path="user" element={<UserLayout />}>
             <Route path="dashboard" element={<UserDashboard />}></Route>
             <Route path="mybooks" element={<UserBooks />}></Route>
