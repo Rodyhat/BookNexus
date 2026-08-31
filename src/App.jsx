@@ -15,6 +15,7 @@ import UserLayout from "./components/UserLayout";
 import UserBooks from "./pages/UserBooks";
 import UserProfile from "./pages/UserProfile";
 import ProtectedRoute from "./pages/ProtectedRoute";
+import AddEditBook from "./pages/AddEditBooks";
 const App = () => {
   return (
     <Wrapper className='page-content'>
@@ -32,6 +33,7 @@ const App = () => {
             <Route path="books" element={<AdminBooks />} />
             <Route path="settings" element={<AdminSettiings />} />
             <Route path="borrowers" element={<AdminBorrowers />} />
+            <Route path="add_edit_books" element={<AddEditBook />} />
           </Route>
         </Route>
 

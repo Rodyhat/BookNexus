@@ -36,7 +36,7 @@ const SignIn = () => {
         onSubmit: (values) => {
             // Using the login function from AuthContext to handle global state
             const result = login(values.email, values.password);
-            
+
             if (result.success) {
                 if (result.role === 'admin') {
                     navigate('/admin/dashboard');
@@ -64,15 +64,15 @@ const SignIn = () => {
                 <form onSubmit={formik.handleSubmit} className="flex flex-col gap-6 w-full">
                     <div className="flex flex-col">
                         <label htmlFor="email" className="font-semibold text-[15px]">Email Address</label>
-                        <input 
-                            type="email" 
+                        <input
+                            type="email"
                             id="email"
-                            name='email' 
-                            onChange={formik.handleChange} 
-                            onBlur={formik.handleBlur} 
+                            name='email'
+                            onChange={formik.handleChange}
+                            onBlur={formik.handleBlur}
                             value={formik.values.email}
-                            placeholder="Enter your email address" 
-                            className="outline-0 border border-outline-variant p-2 rounded-sm text-sm" 
+                            placeholder="Enter your email address"
+                            className="outline-0 border border-outline-variant p-2 rounded-sm text-sm"
                         />
                         {formik.touched.email && formik.errors.email && (
                             <p className='text-error text-sm'>{formik.errors.email}</p>
@@ -84,32 +84,32 @@ const SignIn = () => {
                             <label htmlFor="password" className="font-semibold text-[15px]">Password</label>
                             <span className="text-primary-container text-label-sm cursor-pointer">Forgot?</span>
                         </div>
-                        <input 
-                            type={showPassword ? 'text' : 'password'} 
+                        <input
+                            type={showPassword ? 'text' : 'password'}
                             id="password"
-                            name='password' 
-                            onChange={formik.handleChange} 
-                            onBlur={formik.handleBlur} 
+                            name='password'
+                            onChange={formik.handleChange}
+                            onBlur={formik.handleBlur}
                             value={formik.values.password}
-                            placeholder="Enter your password" 
-                            className="rounded-sm outline-0 border text-sm border-outline-variant w-full p-2 pr-10" 
+                            placeholder="Enter your password"
+                            className="rounded-sm outline-0 border text-sm border-outline-variant w-full p-2 pr-10"
                         />
                         {formik.touched.password && formik.errors.password && (
                             <p className='text-error text-sm'>{formik.errors.password}</p>
                         )}
-                        <button 
-                            onClick={() => setShowPassword(!showPassword)} 
-                            type='button' 
-                            className="absolute top-8 right-3" 
+                        <button
+                            onClick={() => setShowPassword(!showPassword)}
+                            type='button'
+                            className="absolute top-8 right-3"
                             aria-label={showPassword ? 'Hide password' : 'Show Password'}
                         >
                             {showPassword ? <FiEyeOff size={18} /> : <FiEye size={18} />}
                         </button>
                     </div>
 
-                    <Button 
-                        type='submit' 
-                        rightIcon={<FaArrowRight />} 
+                    <Button
+                        type='submit'
+                        rightIcon={<FaArrowRight />}
                         className="w-full justify-center py-3"
                     >
                         Sign In
@@ -118,9 +118,9 @@ const SignIn = () => {
 
                 <div className="text-center">
                     <p className='text-label-sm mt-4'>
-                        Don't have an account? 
-                        <button 
-                            type='button' 
+                        Don't have an account?
+                        <button
+                            type='button'
                             onClick={() => navigate('/register')}
                             className='text-primary-container font-semibold ml-1'
                         >

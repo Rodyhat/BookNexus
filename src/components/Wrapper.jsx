@@ -1,17 +1,9 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useReducer, useState } from "react";
 import { AdminContext, AuthContext, BookContext, UserContext } from "../context/myContext";
 import axios from "axios";
-import MockUsers from "../data/mockUsers"; // Assuming path based on project structure
+import MockUsers from "../data/mockUsers";
 
-/**
- * BookNexus Context Wrapper
- * 
- * Manages global state for:
- * 1. Books (OpenLibrary API integration)
- * 2. Auth (Mock Authentication for development)
- * 3. Admin UI (Sidebar states)
- * 4. User Profile (Contextual data)
- */
+
 const Wrapper = ({ children }) => {
     // --- Book Catalog State ---
     const [search, setSearch] = useState('');
@@ -19,28 +11,25 @@ const Wrapper = ({ children }) => {
     const [books, setBooks] = useState([]);
     const trendingQuery = "popular books";
 
+
+
     // --- Auth & User State ---
     const [user, setUser] = useState(null);
-    const [role, setRole] = useState(null); 
+    const [role, setRole] = useState(null);
     const [isAuthenticated, setIsAuthenticated] = useState(false);
-    const [isLoading, setIsLoading] = useState(true); // Added loading state for auth check
+    const [isLoading, setIsLoading] = useState(true);
 
     // --- Admin Sidebar State ---
     const [sidebarOpen, setSidebarOpen] = useState(false);
 
-    // Initial Auth Check (Simulated)
+    // Initial Auth Check
     useEffect(() => {
-        // Simulate checking for a stored session (e.g., from localStorage)
         const checkAuth = async () => {
-            // In a real app with Supabase, you'd check supabase.auth.getSession()
             setIsLoading(true);
-            
-            // Artificial delay to simulate network check
             setTimeout(() => {
                 setIsLoading(false);
             }, 500);
         };
-
         checkAuth();
     }, []);
 
@@ -101,16 +90,52 @@ const Wrapper = ({ children }) => {
         }
     }, []);
 
+    // --- Centralized Book Management Logic ---
+    const addBook = async (newBook) => {
+        // In a real app, this would be a supabase.from('books').insert() call
+        return new Promise((resolve) => {
+            setTimeout(() => {
+                const bookWithKey = {
+                    ...newBook,
+                    key: `local_${Date.now()}`,
+                    status: 'Available'
+                };
+                setBooks(prev => [bookWithKey, ...prev]);
+                resolve({ success: true });
+            }, 1000);
+        });
+    };
+
+    const updateBook = async (updatedBook) => {
+        // In a real app, this would be a supabase.from('books').update() call
+        return new Promise((resolve) => {
+            setTimeout(() => {
+                setBooks(prev => prev.map(book =>
+                    book.key === updatedBook.key ? { ...book, ...updatedBook } : book
+                ));
+                resolve({ success: true });
+            }, 1000);
+        });
+    };
+
+    const deleteBook = async (bookKey) => {
+        return new Promise((resolve) => {
+            setTimeout(() => {
+                setBooks(prev => prev.filter(book => book.key !== bookKey));
+                resolve({ success: true });
+            }, 500);
+        });
+    };
+
     // --- UI Handlers ---
     const handleSidebar = () => setSidebarOpen(!sidebarOpen);
 
     // --- Mock Auth Handlers ---
     const login = (email, password) => {
         const foundUser = MockUsers.find(u => u.email === email && u.password === password);
-        
         if (foundUser) {
             setIsAuthenticated(true);
-            setUser({ email: foundUser.email, name: email.split('@')[0] }); // Derived name for mock
+            setUser({ email: foundUser.email, name: email.split('@')[0] });
             setRole(foundUser.role);
             return { success: true, role: foundUser.role };
         } else {
@@ -124,9 +149,20 @@ const Wrapper = ({ children }) => {
         setRole(null);
     };
 
+    // use reducer to handle the add book in the admin page
+
     return (
         <AuthContext.Provider value={{ isAuthenticated, user, role, isLoading, login, logout }}>
-            <BookContext.Provider value={{ search, books, changeSearch, loadMore, fetchBookDetails }}>
+            <BookContext.Provider value={{
+                search,
+                books,
+                changeSearch,
+                loadMore,
+                fetchBookDetails,
+                addBook,
+                updateBook,
+                deleteBook
+            }}>
                 <AdminContext.Provider value={{ sidebarOpen, handleSidebar }}>
                     <UserContext.Provider value={{ profile: user, history: [] }}>
                         {children}
