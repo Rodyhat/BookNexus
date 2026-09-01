@@ -21,9 +21,7 @@ const AdminBooks = () => {
 
     const navigate = useNavigate();
 
-    // -----------------------------
     // Handle Delete
-    // -----------------------------
     const handleDeleteBook = (bookKey) => {
         toast((t) => (
             <div className="flex items-center gap-4">
@@ -181,7 +179,7 @@ const AdminBooks = () => {
                                         <div className="flex justify-end gap-2">
 
                                             {/* Edit */}
-                                            <button
+                                            <button onClick={()=>navigate('/admin/add_edit_books', {state: {bookToEdit: book}})}
                                                 type="button"
                                                 className="p-2 text-slate-400 hover:text-primary-container transition-colors"
                                                 title="Edit book"

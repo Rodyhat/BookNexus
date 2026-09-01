@@ -17,12 +17,14 @@ import UserProfile from "./pages/UserProfile";
 import ProtectedRoute from "./pages/ProtectedRoute";
 import AddEditBook from "./pages/AddEditBooks";
 import { Toaster } from "react-hot-toast";
+import NotFound from "./pages/NotFound";
 const App = () => {
   return (
     <Wrapper className='page-content'>
       <Toaster position="top-right" toastOptions={{ duration: 3000, }} />
       <Routes>
         {/* public pages */}
+        <Route path="*" element={<NotFound/>}/>
         <Route path="/" element={<LandingPage />} />
         <Route path='/signin' element={<SignIn />} />
         <Route path="/trendinglist" element={<TrendList />} />
