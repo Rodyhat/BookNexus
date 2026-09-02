@@ -12,7 +12,6 @@ import {
 } from 'react-icons/md';
 import Button from '../components/Button';
 import { Link, useNavigate } from 'react-router-dom';
-import Logo from '/src/assets/logo.png';
 
 const UserDashboard = () => {
   const navigate = useNavigate();
@@ -98,47 +97,35 @@ const UserDashboard = () => {
     <div className="min-h-screen bg-[#F9F9FF] font-sora">
 
       {/* ================= MAIN CONTENT ================= */}
-      <main className="page-container mx-auto">
-
+      <main className="mx-auto">
         <div className="py-6 md:py-8 lg:py-10">
-
           {/* ================= WELCOME ================= */}
           <section className="mb-8 md:mb-10">
-
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
-
               <div>
                 <h1 className="text-2xl md:text-3xl font-bold text-slate-900 mb-1">
                   Welcome back, Alex.
                 </h1>
-
-                <p className="text-sm md:text-base text-slate-600">
+                <p className="text-sm-label md:text-base text-slate-600">
                   You have 2 books due this week.
                 </p>
               </div>
-
               <Button
                 variant="primary"
                 className="w-full md:w-auto px-5 font-semibold" onClick={() => navigate('/trendinglist')}
               >
                 Browse Catalog
               </Button>
-
             </div>
-
           </section>
-
-
           {/* ================= STATISTICS ================= */}
           <section className="grid grid-cols-1 sm:grid-cols-3 gap-3 md:gap-4 mb-10">
-
             {stats.map((stat, idx) => (
               <div
                 key={idx}
                 className="bg-white p-4 md:p-5 lg:p-6 rounded-xl shadow-sm border-l-4 flex items-center gap-4"
                 style={{ borderLeftColor: stat.color }}
               >
-
                 <div className={`${stat.bg} p-3 rounded-xl shrink-0`}>
                   <stat.icon
                     size={24}
@@ -147,26 +134,19 @@ const UserDashboard = () => {
                 </div>
 
                 <div className="min-w-0">
-
                   <p className="text-[9px] md:text-[10px] font-black text-slate-400 tracking-widest uppercase truncate">
                     {stat.label}
                   </p>
-
                   <p className="text-2xl md:text-3xl font-black text-slate-800">
                     {stat.value}
                   </p>
-
                 </div>
-
               </div>
             ))}
-
           </section>
-
 
           {/* ================= CURRENTLY BORROWED ================= */}
           <section className="mb-10">
-
             <h2 className="text-xl font-bold text-slate-800 mb-5 md:mb-6">
               Currently Borrowed
             </h2>

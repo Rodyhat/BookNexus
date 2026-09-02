@@ -7,12 +7,28 @@ body {
 }
 
 .page-container {
-  padding: 5px 30px;
+  width: 100%;
+  max-width: 1280px;
+  margin-inline: auto;
+  padding-inline: 16px;
+}
+
+@media (min-width: 640px) {
+  .page-container {
+    padding-inline: 24px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .page-container {
+    padding-inline: 30px;
+  }
 }
 
 li {
   font-size: 15px;
 }
+
 h1 {
   font-family: "Sora", sans-serif;
 }
