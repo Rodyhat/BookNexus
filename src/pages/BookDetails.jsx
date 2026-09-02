@@ -34,7 +34,7 @@ const BookDetails = () => {
     // Handler to navigate to the confirmation request screen
     const handleBorrowClick = () => {
         // Navigates to the borrowing confirmation page, passing book data in state if needed
-        navigate(`/borrow-confirm/${bookId}`, { state: { bookTitle: book?.title } });
+        navigate(`/borrow-confirm/${bookId}`);
     };
 
     return (

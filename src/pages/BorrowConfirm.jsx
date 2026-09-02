@@ -1,272 +1,300 @@
-import React, { useState } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import React, { useContext, useEffect, useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 import {
-    MdArrowBack,
-    MdInfoOutline,
-    MdCheckCircle
-} from 'react-icons/md';
-import Button from '../components/Button';
+    FaArrowLeft,
+    FaBook,
+    FaCalendarAlt,
+    FaCheckCircle,
+} from "react-icons/fa";
+import { BookContext } from "../context/myContext";
+import Button from "../components/Button";
 
 const BorrowConfirm = () => {
+    const { bookId } = useParams();
+    const { fetchBookDetails } = useContext(BookContext);
     const navigate = useNavigate();
-    const location = useLocation();
 
-    const bookTitle =
-        location.state?.bookTitle || 'Neural Networks Architecture';
-
+    const [book, setBook] = useState(null);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState("");
     const [loanPeriod, setLoanPeriod] = useState(14);
+
+    // Fetch the exact book the user selected
+    useEffect(() => {
+        const getBook = async () => {
+            try {
+                setLoading(true);
+                setError("");
+
+                const data = await fetchBookDetails(bookId);
+                setBook(data);
+            } catch (err) {
+                console.error(err);
+                setError("Unable to load book details.");
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        if (bookId) {
+            getBook();
+        }
+    }, [bookId, fetchBookDetails]);
 
     // Calculate dates
     const today = new Date();
+
     const returnDate = new Date(today);
     returnDate.setDate(today.getDate() + loanPeriod);
 
     const formatDate = (date) => {
-        return date.toLocaleDateString('en-US', {
-            month: 'short',
-            day: 'numeric',
-            year: 'numeric'
+        return date.toLocaleDateString("en-US", {
+            month: "short",
+            day: "numeric",
+            year: "numeric",
         });
     };
-
-    const periods = [
-        { days: 7, label: 'Short' },
-        { days: 14, label: 'Standard' },
-        { days: 21, label: 'Extended' }
-    ];
 
     const handleConfirm = () => {
-        navigate('/borrow-success', {
+        const referenceId = `BNX-${Date.now()
+            .toString()
+            .slice(-8)}`;
+
+        navigate("/borrow-success", {
             state: {
-                referenceId:
-                    'BNX-' +
-                    Math.floor(Math.random() * 9000 + 1000) +
-                    '-TL'
-            }
+                book,
+                bookId,
+                loanPeriod,
+                borrowedDate: formatDate(today),
+                returnDate: formatDate(returnDate),
+                referenceId,
+            },
         });
     };
 
-    return (
-        <div className="min-h-screen bg-[#F9F9FF] font-sora">
-
-            {/* Header */}
-            <header className="sticky top-0 z-40 bg-white border-b border-indigo-50">
-                <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                    <div className="min-h-16 flex items-center gap-2 sm:gap-4">
-                        <button type="button" onClick={() => navigate(-1)} aria-label="Go back" className="shrink-0
-                w-10 h-10
-                -ml-1
-                rounded-full
-                flex items-center justify-center
-                text-slate-500
-                hover:bg-slate-50
-                hover:text-slate-700
-                transition-colors
-              "
-                        >
-                            <MdArrowBack size={23} />
-                        </button>
-
-                        <h1 className="min-w-0 text-base sm:text-lg md:text-xl font-bold text-slate-800 truncate">
-                            Confirm Borrow Request
-                        </h1>
-
-                    </div>
+    // Loading state
+    if (loading) {
+        return (
+            <div className="min-h-screen bg-[#F9F9FF] flex items-center justify-center px-4">
+                <div className="text-center">
+                    <div className="w-10 h-10 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+                    <p className="text-gray-600 font-medium">
+                        Loading book details...
+                    </p>
                 </div>
-            </header>
+            </div>
+        );
+    }
 
-            {/* Main */}
-            <main className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 lg:py-5">
+    // Error state
+    if (error || !book) {
+        return (
+            <div className="min-h-screen bg-[#F9F9FF] flex items-center justify-center px-4">
+                <div className="text-center max-w-md">
+                    <div className="w-16 h-16 bg-red-100 text-red-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <FaBook size={25} />
+                    </div>
 
-                {/* Page heading */}
-                <div className="mb-6 sm:mb-8 lg:mb-3">
-                    <h2 className="text-xl sm:text-2xl lg:text-3xl font-black text-slate-800 tracking-tight ">
-                        Borrow Book
+                    <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-2">
+                        Book Not Found
                     </h2>
-                    <p className="text-xs sm:text-sm text-slate-400 font-medium mb-1">
-                        Review your borrowing details before confirming.
+
+                    <p className="text-gray-600 mb-6">
+                        {error || "We could not load this book."}
+                    </p>
+
+                    <Button onClick={() => navigate(-1)}>
+                        Go Back
+                    </Button>
+                </div>
+            </div>
+        );
+    }
+
+    const title = book.title || "Unknown Book";
+
+    const author = book.author_name?.length
+        ? book.author_name.join(", ")
+        : "Unknown Author";
+
+    const coverUrl = book.covers?.[0]
+        ? `https://covers.openlibrary.org/b/id/${book.covers[0]}-L.jpg`
+        : null;
+
+    return (
+        <div className="min-h-screen bg-[#F9F9FF] font-sora px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+            <div className="max-w-6xl mx-auto">
+
+                {/* Back button */}
+                <button
+                    onClick={() => navigate(-1)}
+                    className="flex items-center gap-2 text-gray-600 hover:text-indigo-700 transition mb-6 sm:mb-8"
+                >
+                    <FaArrowLeft />
+                    <span className="text-sm sm:text-base">
+                        Back to Book Details
+                    </span>
+                </button>
+
+                {/* Heading */}
+                <div className="mb-6 sm:mb-8">
+                    <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900">
+                        Confirm Borrowing
+                    </h1>
+
+                    <p className="text-gray-500 mt-2 text-sm sm:text-base">
+                        Review the book and borrowing period before confirming.
                     </p>
                 </div>
 
-                {/* Responsive Content */}
-                <div className="grid grid-cols-1 lg:grid-cols-[minmax(280px,360px)_minmax(0,1fr)] gap-6 lg:gap-8 xl:gap-10 mx-auto">
-                    {/* Book Preview */}
-                    <section className=" bg-white rounded-2xl border border-indigo-50 shadow-sm p-5  sm:p-6 lg:p-5 text-center">
-                        <div className="w-62.5 h-76.25 sm:w-41.25 sm:h-56.25 lg:w-45  lg:h-61.25 bg-slate-50 rounded-xl mx-auto mb-5 shadow-md border border-slate-100 flex items-center justify-center overflow-hidden">
-                            <img
-                                src="https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?auto=format&fit=crop&w=300"
-                                alt="Book Cover"
-                                className="w-full h-full object-cover"
-                            />
-                        </div>
+                {/* Main content */}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8">
 
-                        <span className="inline-flex items-center justify-center bg-indigo-50 text-primary-contborder-primary-container text-[9px] sm:text-[10px] font-black uppercase  tracking-wider px-3 py-1.5 rounded-full mb-3">
-                            Available for Loan
-                        </span>
+                    {/* Book information */}
+                    <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 sm:p-6">
+                        <h2 className="text-lg sm:text-xl font-bold text-gray-900 mb-5">
+                            Book Information
+                        </h2>
 
-                        <h3 className="text-lg sm:text-xl lg:text-2xl font-black text-slate-800 tracking-tight leading-tight wrap-break-words">
-                            {bookTitle}
-                        </h3>
-                        <p className="mt-2 text-xs sm:text-sm text-slate-500 font-medium italic">
-                            by Dr. Sarah Jenkins
-                        </p>
+                        <div className="flex flex-col sm:flex-row gap-5">
 
-                    </section>
+                            {/* Cover */}
+                            <div className="w-full sm:w-40 lg:w-44 shrink-0">
+                                <div className="aspect-[2/3] bg-gray-100 rounded-xl overflow-hidden">
+                                    {coverUrl ? (
+                                        <img
+                                            src={coverUrl}
+                                            alt={title}
+                                            className="w-full h-full object-cover"
+                                        />
+                                    ) : (
+                                        <div className="w-full h-full flex items-center justify-center text-gray-400">
+                                            <FaBook size={40} />
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
 
-                    {/* Borrowing Details */}
-                    <div className="min-w-0">
-                        {/* Loan Period */}
-                        <section className="mb-6 sm:mb-7">
-                            <div className="mb-3 sm:mb-4">
-                                <h3 className="text-sm sm:text-base font-black text-slate-800 uppercase tracking-wider">
-                                    Select Loan Period
+                            {/* Details */}
+                            <div className="flex-1">
+                                <h3 className="text-xl sm:text-2xl font-bold text-gray-900 leading-tight">
+                                    {title}
                                 </h3>
-                                <p className="text-xs sm:text-sm text-slate-400  mt-1">
-                                    Choose how long you would like to keep this book.
+
+                                <p className="text-gray-500 mt-2 text-sm sm:text-base">
+                                    by {author}
                                 </p>
+
+                                {book.first_publish_date && (
+                                    <div className="mt-5">
+                                        <p className="text-xs uppercase tracking-wide text-gray-400">
+                                            Published
+                                        </p>
+
+                                        <p className="text-gray-700 mt-1 text-sm">
+                                            {book.first_publish_date}
+                                        </p>
+                                    </div>
+                                )}
+
+                                {book.subjects?.length > 0 && (
+                                    <div className="mt-4">
+                                        <p className="text-xs uppercase tracking-wide text-gray-400 mb-2">
+                                            Category
+                                        </p>
+
+                                        <span className="inline-block bg-indigo-50 text-indigo-700 px-3 py-1 rounded-full text-xs font-medium">
+                                            {book.subjects[0]}
+                                        </span>
+                                    </div>
+                                )}
                             </div>
-                            <div className="grid grid-cols-3 gap-2 sm:gap-3">
-                                {periods.map((period) => {
-                                    const isSelected = loanPeriod === period.days;
-
-                                    return (
-                                        <button
-                                            key={period.days}
-                                            type="button"
-                                            onClick={() => setLoanPeriod(period.days)}
-                                            className={`
-                        min-w-0
-                        min-h-19.5
-                        sm:min-h-22.5
-                        px-2
-                        sm:px-3
-                        py-3
-                        rounded-xl
-                        border-2
-                        flex
-                        flex-col
-                        items-center
-                        justify-center
-                        transition-all
-                        ${isSelected
-                                                    ? 'border-primary-container bg-indigo-50 text-primary-contborder-primary-container shadow-sm'
-                                                    : 'border-slate-100 bg-white text-slate-400 hover:border-indigo-100 hover:bg-indigo-50/30'
-                                                }
-                      `}
-                                        >
-                                            <span className="
-                        text-sm
-                        sm:text-lg
-                        font-black
-                        whitespace-nowrap
-                      ">
-                                                {period.days} Days
-                                            </span>
-
-                                            <span className="
-                        text-[9px]
-                        sm:text-[10px]
-                        font-bold
-                        uppercase
-                        tracking-wide
-                        mt-1
-                      ">
-                                                {period.label}
-                                            </span>
-                                        </button>
-                                    );
-                                })}
-                            </div>
-                        </section>
-
-                        {/* Request Summary */}
-                        <section className="bg-white rounded-2xl border border-indigo-50 shadow-sm overflow-hidden mb-6
-              sm:mb-7">
-
-                            <div className="px-4 sm:px-5 py-3.5 sm:py-4 bg-slate-50/60 border-b border-indigo-50">
-                                <h3 className="text-[10px] sm:text-xs font-black text-slate-400 uppercase  tracking-widest">
-                                    Request Summary
-                                </h3>
-                            </div>
-
-                            <div className="p-4 sm:p-5 lg:p-6 space-y-4">
-                                {/* Borrow Date */}
-                                <div className="flex items-center justify-between gap-4 text-xs sm:text-sm">
-                                    <span className="text-slate-500 font-medium">
-                                        Borrow Date
-                                    </span>
-                                    <span className="text-slate-800 font-bold text-right whitespace-nowrap">
-                                        {formatDate(today)}
-                                    </span>
-                                </div>
-
-                                {/* Return Date */}
-                                <div className="
-                  flex
-                  items-center
-                  justify-between
-                  gap-4
-                  text-xs
-                  sm:text-sm
-                ">
-                                    <span className="text-slate-500 font-medium">
-                                        Expected Return
-                                    </span>
-
-                                    <span className="
-                    text-primary-contborder-primary-container
-                    font-black
-                    text-right
-                    whitespace-nowrap
-                  ">
-                                        {formatDate(returnDate)}
-                                    </span>
-                                </div>
-
-                                {/* Information */}
-                                <div className="
-                  pt-4
-                  border-t border-slate-100
-                  flex
-                  gap-3
-                  items-start
-                ">
-                                    <MdInfoOutline
-                                        className="text-amber-500 shrink-0 mt-0.5"
-                                        size={18}
-                                    />
-
-                                    <p className="
-                    text-[10px]
-                    sm:text-[11px]
-                    text-slate-400
-                    font-medium
-                    leading-relaxed
-                  ">
-                                        A late fee of $0.50/day applies if the book is not
-                                        returned or renewed by the due date.
-                                    </p>
-                                </div>
-
-                            </div>
-                        </section>
-                        {/* Actions */}
-                        <div className="flex flex-col-reverse sm:flex-row gap-3">
-                            <Button
-                                variant="ghost"
-                                className="w-full sm:flex-1 min-h-[48px] text-slate-400"
-                                onClick={() => navigate(-1)}>
-                                Cancel
-                            </Button>
-                            <Button variant="primary" className="w-full sm:flex-2 min-h-[48px] shadow-lg shadow-indigo-100"
-                                onClick={handleConfirm}>
-                                <MdCheckCircle className="mr-2 shrink-0" size={20} />
-                                <span>Confirm Request</span>
-                            </Button>
                         </div>
                     </div>
+
+                    {/* Borrowing information */}
+                    <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 sm:p-6">
+                        <h2 className="text-lg sm:text-xl font-bold text-gray-900 mb-5">
+                            Borrowing Details
+                        </h2>
+
+                        {/* Borrow date */}
+                        <div className="flex items-center justify-between gap-4 py-4 border-b border-gray-100">
+                            <div className="flex items-center gap-3">
+                                <div className="w-10 h-10 rounded-lg bg-indigo-50 text-indigo-700 flex items-center justify-center">
+                                    <FaCalendarAlt />
+                                </div>
+
+                                <div>
+                                    <p className="text-xs text-gray-400 uppercase tracking-wide">
+                                        Borrow Date
+                                    </p>
+
+                                    <p className="font-semibold text-gray-900 text-sm sm:text-base">
+                                        {formatDate(today)}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Loan period */}
+                        <div className="py-5">
+                            <p className="text-sm font-semibold text-gray-900 mb-3">
+                                Loan Period
+                            </p>
+
+                            <div className="grid grid-cols-3 gap-2 sm:gap-3">
+                                {[7, 14, 21].map((period) => (
+                                    <button
+                                        key={period}
+                                        type="button"
+                                        onClick={() => setLoanPeriod(period)}
+                                        className={`py-3 px-2 rounded-xl border text-sm font-semibold transition ${
+                                            loanPeriod === period
+                                                ? "border-indigo-600 bg-indigo-50 text-indigo-700"
+                                                : "border-gray-200 text-gray-600 hover:border-indigo-300"
+                                        }`}
+                                    >
+                                        {period} Days
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+
+                        {/* Return date */}
+                        <div className="flex items-center gap-3 bg-gray-50 rounded-xl p-4">
+                            <div className="w-10 h-10 rounded-lg bg-white text-indigo-700 flex items-center justify-center shadow-sm">
+                                <FaCheckCircle />
+                            </div>
+
+                            <div>
+                                <p className="text-xs text-gray-400 uppercase tracking-wide">
+                                    Return Date
+                                </p>
+
+                                <p className="font-bold text-gray-900">
+                                    {formatDate(returnDate)}
+                                </p>
+                            </div>
+                        </div>
+
+                        {/* Confirm button */}
+                        <div className="mt-6">
+                            <Button
+                                onClick={handleConfirm}
+                                className="w-full"
+                            >
+                                Confirm Borrowing
+                            </Button>
+                        </div>
+
+                        <p className="text-xs text-gray-400 text-center mt-4 leading-relaxed">
+                            By confirming, you agree to return the book on or
+                            before the selected return date.
+                        </p>
+                    </div>
                 </div>
-            </main>
+            </div>
         </div>
     );
 };
