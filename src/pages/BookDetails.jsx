@@ -5,18 +5,11 @@ import { useParams, Link, useNavigate } from "react-router-dom";
 import { FaArrowLeft, FaBook } from "react-icons/fa";
 import Button from "../components/Button";
 
-/**
- * BookDetails Component
- * 
- * Updated to include:
- * 1. Navigation to the "Confirm Request" page via the 'Borrow Material' button.
- * 2. Alignment with Academic Precision design system using your Universal Button.
- */
 const BookDetails = () => {
     const { fetchBookDetails } = useContext(BookContext);
     const { bookId } = useParams();
     const navigate = useNavigate();
-    
+
     const [book, setBook] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
@@ -47,23 +40,23 @@ const BookDetails = () => {
     return (
         <div className="min-h-screen bg-[#F9F9FF] font-sora">
             <DetailsNavbar />
-            
-            <div className="max-w-6xl mx-auto px-4 py-4">
-                <Link 
-                    className="inline-flex items-center text-sm font-bold text-primary-container gap-2 hover:underline mb-6" 
+
+            <div className="page-container mx-auto px-4 py-4">
+                <Link
+                    className="inline-flex items-center text-sm font-bold text-primary-container gap-2 mb-6"
                     to='/trendinglist'
-                > 
+                >
                     <FaArrowLeft /> Back to Library
                 </Link>
 
                 <section className="bg-white rounded-2xl border border-indigo-50 shadow-sm p-6 md:p-10">
                     {loading && (
                         <div className="py-20 text-center flex flex-col items-center gap-4">
-                            <div className="w-10 h-10 border-4 border-indigo-100 border-t-primary-containetext-primary-container rounded-full animate-spin"></div>
+                            <div className="w-10 h-10 border-4 border-indigo-100 border-t-primary-container rounded-full animate-spin"></div>
                             <p className="text-slate-500 font-medium">Loading book details...</p>
                         </div>
                     )}
-                    
+
                     {error && (
                         <div className="py-20 text-center">
                             <p className="text-red-500 font-bold">{error}</p>
@@ -75,7 +68,7 @@ const BookDetails = () => {
                         <div className="flex flex-col md:flex-row items-start gap-10 lg:gap-16">
                             {/* BOOK COVER */}
                             <div className="w-full md:w-80 shrink-0">
-                                <div className="bg-slate-50 rounded-2xl p-8 border border-slate-100 shadow-inner flex justify-center items-center aspect-3/4">
+                                <div className="bg-slate-50 rounded-2xl p-8 border border-slate-100 shadow-inner flex justify-center items-center aspect-[3/4">
                                     {book.covers?.[0] ? (
                                         <img
                                             src={`https://covers.openlibrary.org/b/id/${book.covers[0]}-L.jpg`}
@@ -141,15 +134,15 @@ const BookDetails = () => {
                                 </div>
 
                                 <div className="flex flex-col sm:flex-row gap-4">
-                                    <Button 
-                                        variant="primary" 
+                                    <Button
+                                        variant="primary"
                                         className="px-8 py-4 shadow-lg shadow-indigo-100"
                                         onClick={handleBorrowClick}
                                     >
                                         <FaBook className="mr-2" /> Borrow Material
                                     </Button>
-                                    <Button 
-                                        variant="secondary" 
+                                    <Button
+                                        variant="secondary"
                                         className="px-8 py-4"
                                     >
                                         Preview Extract

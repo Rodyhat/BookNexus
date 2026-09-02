@@ -18,17 +18,21 @@ import ProtectedRoute from "./pages/ProtectedRoute";
 import AddEditBook from "./pages/AddEditBooks";
 import { Toaster } from "react-hot-toast";
 import NotFound from "./pages/NotFound";
+import BorrowConfirm from "./pages/BorrowConfirm";
+import BorrowingSuccess from "./pages/BorrowSuccess";
 const App = () => {
   return (
     <Wrapper className='page-content'>
       <Toaster position="top-right" toastOptions={{ duration: 3000, }} />
       <Routes>
         {/* public pages */}
-        <Route path="*" element={<NotFound/>}/>
+        <Route path="*" element={<NotFound />} />
         <Route path="/" element={<LandingPage />} />
         <Route path='/signin' element={<SignIn />} />
         <Route path="/trendinglist" element={<TrendList />} />
         <Route path='/bookdetails/:bookId' element={<BookDetails />}></Route>
+        <Route path="/borrow-confirm/:id" element={<BorrowConfirm />} />
+        <Route path="/borrow-success" element={<BorrowingSuccess />} />
 
         {/* Admin pages */}
         <Route path="" element={<ProtectedRoute />}>

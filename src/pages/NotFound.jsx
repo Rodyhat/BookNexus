@@ -13,7 +13,7 @@ const NotFound = () => {
 
     return (
         <div className="min-h-screen bg-[#F9F9FF] font-sora flex items-center justify-center p-6">
-            <div className="max-w-md w-full text-center">
+            <div className=" w-full text-center">
                 <div className="relative inline-block mb-12">
                     <div className="text-[120px] font-black text-indigo-50 leading-none">404</div>
                     <div className="absolute inset-0 flex items-center justify-center">
