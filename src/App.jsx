@@ -31,7 +31,7 @@ const App = () => {
         <Route path='/signin' element={<SignIn />} />
         <Route path="/trendinglist" element={<TrendList />} />
         <Route path='/bookdetails/:bookId' element={<BookDetails />}></Route>
-        <Route path="/borrow-confirm/:id" element={<BorrowConfirm />} />
+        <Route path="/borrow-confirm/:bookId" element={<BorrowConfirm />} />
         <Route path="/borrow-success" element={<BorrowingSuccess />} />
 
         {/* Admin pages */}

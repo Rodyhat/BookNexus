@@ -22,23 +22,32 @@ const BorrowConfirm = () => {
     // Fetch the exact book the user selected
     useEffect(() => {
         const getBook = async () => {
+            if (!bookId) {
+                setError("Book ID is missing.");
+                setLoading(false);
+                return;
+            }
+
             try {
                 setLoading(true);
                 setError("");
 
                 const data = await fetchBookDetails(bookId);
+
+                if (!data) {
+                    throw new Error("Book not found");
+                }
+
                 setBook(data);
             } catch (err) {
-                console.error(err);
+                console.error("Error loading book:", err);
                 setError("Unable to load book details.");
             } finally {
                 setLoading(false);
             }
         };
 
-        if (bookId) {
-            getBook();
-        }
+        getBook();
     }, [bookId, fetchBookDetails]);
 
     // Calculate dates
@@ -160,7 +169,7 @@ const BorrowConfirm = () => {
 
                             {/* Cover */}
                             <div className="w-full sm:w-40 lg:w-44 shrink-0">
-                                <div className="aspect-[2/3] bg-gray-100 rounded-xl overflow-hidden">
+                                <div className="aspect-2/3 bg-gray-100 rounded-xl overflow-hidden">
                                     {coverUrl ? (
                                         <img
                                             src={coverUrl}
@@ -249,11 +258,10 @@ const BorrowConfirm = () => {
                                         key={period}
                                         type="button"
                                         onClick={() => setLoanPeriod(period)}
-                                        className={`py-3 px-2 rounded-xl border text-sm font-semibold transition ${
-                                            loanPeriod === period
-                                                ? "border-indigo-600 bg-indigo-50 text-indigo-700"
-                                                : "border-gray-200 text-gray-600 hover:border-indigo-300"
-                                        }`}
+                                        className={`py-3 px-2 rounded-xl border text-sm font-semibold transition ${loanPeriod === period
+                                            ? "border-indigo-600 bg-indigo-50 text-indigo-700"
+                                            : "border-gray-200 text-gray-600 hover:border-indigo-300"
+                                            }`}
                                     >
                                         {period} Days
                                     </button>

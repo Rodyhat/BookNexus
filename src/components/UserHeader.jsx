@@ -9,7 +9,7 @@ const UserHeader = () => {
             <div className="page-container flex justify-between items-center py-2 md:py-3">
 
                 {/* Logo */}
-                <Link to="/dashboard" className="shrink-0">
+                <Link to="/" className="shrink-0">
                     <img
                         src={Logo}
                         alt="BookNexus"

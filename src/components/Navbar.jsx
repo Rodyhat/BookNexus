@@ -6,9 +6,9 @@ const Navbar = () => {
         <nav>
             <div className="w-full flex flex-row justify-between items-center page-container">
                 {/*Logo  */}
-                <div className="md:w-15 md:h-15">
+                <Link className="md:w-15 md:h-15" to='/'>
                     <img src="/src/assets/logo.png" alt="" className="w-15 h-15" />
-                </div>
+                </Link>
                 {/* Navigation */}
                 <ul className=" gap-5 hidden md:flex">
                     <Link className="text-primary-container"> <li>Catalogue</li></Link>

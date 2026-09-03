@@ -74,18 +74,52 @@ const Wrapper = ({ children }) => {
 
     const fetchBookDetails = useCallback(async (workId) => {
         try {
-            const response = await axios.get(`https://openlibrary.org/works/${workId}.json`);
+            if (!workId) {
+                throw new Error("Book ID is missing");
+            }
+
+            // Fetch the book details
+            const response = await axios.get(
+                `https://openlibrary.org/works/${workId}.json`,
+                {
+                    timeout: 10000,
+                }
+            );
+
             const book = response.data;
+
+            // Fetch authors without allowing one failed author
+            // request to break the entire book request
             const authors = await Promise.all(
                 (book.authors || []).map(async (author) => {
-                    const authorKey = author.author.key;
-                    const res = await axios.get(`https://openlibrary.org${authorKey}.json`);
-                    return res.data.name;
+                    try {
+                        const authorKey = author?.author?.key;
+
+                        if (!authorKey) {
+                            return null;
+                        }
+
+                        const res = await axios.get(
+                            `https://openlibrary.org${authorKey}.json`,
+                            {
+                                timeout: 5000,
+                            }
+                        );
+
+                        return res.data?.name || null;
+                    } catch (error) {
+                        console.error("Error fetching author:", error);
+                        return null;
+                    }
                 })
             );
-            return { ...book, author_name: authors };
+
+            return {
+                ...book,
+                author_name: authors.filter(Boolean),
+            };
         } catch (error) {
-            console.error("Error fetching details:", error);
+            console.error("Error fetching book details:", error);
             throw error;
         }
     }, []);
