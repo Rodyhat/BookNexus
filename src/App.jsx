@@ -20,6 +20,7 @@ import { Toaster } from "react-hot-toast";
 import NotFound from "./pages/NotFound";
 import BorrowConfirm from "./pages/BorrowConfirm";
 import BorrowingSuccess from "./pages/BorrowSuccess";
+import SignUp from "./pages/SignUp";
 const App = () => {
   return (
     <Wrapper className='page-content'>
@@ -29,6 +30,7 @@ const App = () => {
         <Route path="*" element={<NotFound />} />
         <Route path="/" element={<LandingPage />} />
         <Route path='/signin' element={<SignIn />} />
+        <Route path='/signup' element={<SignUp />} />
         <Route path="/trendinglist" element={<TrendList />} />
         <Route path='/bookdetails/:bookId' element={<BookDetails />}></Route>
         <Route path="/borrow-confirm/:bookId" element={<BorrowConfirm />} />

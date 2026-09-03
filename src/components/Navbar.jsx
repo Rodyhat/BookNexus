@@ -1,7 +1,8 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import Button from "./Button";
 import '/src/App.css'
 const Navbar = () => {
+    const navigate = useNavigate();
     return (
         <nav>
             <div className="w-full flex flex-row justify-between items-center page-container">
@@ -17,7 +18,7 @@ const Navbar = () => {
                 {/* Authentication */}
                 <ul className="flex gap-3 items-center md:gap-5">
                     <Link to='/signin'>  <li>Sign In</li></Link>
-                    <Button type="submit">Register</Button>
+                    <Button type="submit" onClick={() => navigate('/signup')}>Register</Button>
                 </ul>
             </div>
 
