@@ -1,6 +1,6 @@
 import AdminSidebar from "../components/AdminSidebar";
 
-const AdminSettiings = () => {
+const AdminSettings = () => {
     return (
         <section>
            
@@ -8,4 +8,4 @@ const AdminSettiings = () => {
     )
 }
 
-export default AdminSettiings;
+export default AdminSettings;

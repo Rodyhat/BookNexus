@@ -61,7 +61,7 @@ const SignIn = () => {
 
     return (
         <div className="flex min-h-screen bg-gray-50 justify-center font-sora">
-            <div className="border border-outline-variant flex flex-col rounded-lg gap-6 bg-white px-4 py-8 w-full my-auto">
+            <div className="border border-outline-variant flex flex-col rounded-lg gap-6 bg-white px-4 py-8 w-full">
                 <div className="flex justify-center flex-col items-center">
                     <div className="logo">
                         <img src={logo} alt="BookNexus Logo" className="size-15 object-contain" />
