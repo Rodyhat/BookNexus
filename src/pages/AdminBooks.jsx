@@ -1,5 +1,5 @@
 
-import { useContext } from 'react';
+import { useContext, useEffect } from 'react';
 import {
     MdSearch,
     MdAdd,
@@ -16,9 +16,13 @@ const AdminBooks = () => {
         books,
         search,
         changeSearch,
-        deleteBook
+        deleteBook, libraryBooks, fetchLibraryBooks
     } = useContext(BookContext);
+    console.log("My BookNexus library:", libraryBooks);
 
+    useEffect(() => {
+        fetchLibraryBooks();
+    }, [])
     const navigate = useNavigate();
 
     // Handle Delete
@@ -179,7 +183,7 @@ const AdminBooks = () => {
                                         <div className="flex justify-end gap-2">
 
                                             {/* Edit */}
-                                            <button onClick={()=>navigate('/admin/add_edit_books', {state: {bookToEdit: book}})}
+                                            <button onClick={() => navigate('/admin/add_edit_books', { state: { bookToEdit: book } })}
                                                 type="button"
                                                 className="p-2 text-slate-400 hover:text-primary-container transition-colors"
                                                 title="Edit book"

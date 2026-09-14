@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useReducer, useState } from "react";
 import { AdminContext, AuthContext, BookContext, UserContext } from "../context/myContext";
 import axios from "axios";
+import { supabase } from "../services/supabase";
 import MockUsers from "../data/mockUsers";
 
 
@@ -9,9 +10,25 @@ const Wrapper = ({ children }) => {
     const [search, setSearch] = useState('');
     const [page, setPage] = useState(1);
     const [books, setBooks] = useState([]);
+    const [libraryBooks, setLibraryBooks] = useState([]);
     const trendingQuery = "popular books";
 
+    const fetchLibraryBooks = async () => {
+        try {
+            const { data, error } = await supabase
+                .from('books')
+                .select('*')
+                .order('id', { ascending: false })
+            if (error) {
+                throw error
+            }
+            setLibraryBooks(data)
+        }
+        catch (error) {
+            console.error('Error fetching Library', error);
 
+        }
+    }
 
     // --- Auth & User State ---
     const [user, setUser] = useState(null);
@@ -183,7 +200,7 @@ const Wrapper = ({ children }) => {
         setRole(null);
     };
 
-    // use reducer to handle the add book in the admin page
+    // usereducer to handle the add book in the admin page
 
     return (
         <AuthContext.Provider value={{ isAuthenticated, user, role, isLoading, login, logout }}>
@@ -195,7 +212,9 @@ const Wrapper = ({ children }) => {
                 fetchBookDetails,
                 addBook,
                 updateBook,
-                deleteBook
+                deleteBook,
+                libraryBooks,
+                fetchLibraryBooks
             }}>
                 <AdminContext.Provider value={{ sidebarOpen, handleSidebar }}>
                     <UserContext.Provider value={{ profile: user, history: [] }}>

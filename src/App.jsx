@@ -1,3 +1,4 @@
+
 import { Route, Routes } from "react-router-dom";
 import Wrapper from "./components/Wrapper";
 import LandingPage from "./pages/LandingPage";
@@ -21,7 +22,10 @@ import NotFound from "./pages/NotFound";
 import BorrowConfirm from "./pages/BorrowConfirm";
 import BorrowingSuccess from "./pages/BorrowSuccess";
 import SignUp from "./pages/SignUp";
+import { useEffect } from "react";
+import { supabase } from "./services/supabase";
 const App = () => {
+
   return (
     <Wrapper className='page-content'>
       <Toaster position="top-right" toastOptions={{ duration: 3000, }} />
