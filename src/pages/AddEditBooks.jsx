@@ -69,9 +69,7 @@ const AddEditBook = ({ onClose }) => {
                     id: bookToEdit.id || null,
                     key: bookToEdit.key || '',
                     title: bookToEdit.title || '',
-                    author_name: Array.isArray(bookToEdit.author)
-                        ? bookToEdit.author.join(', ')
-                        : bookToEdit.author || '',
+                    author_name: bookToEdit.author || '',
                     genre: bookToEdit.genre || '',
                     isbn: bookToEdit.isbn || '',
                     publisher: bookToEdit.publisher || '',

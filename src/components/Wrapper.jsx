@@ -184,95 +184,112 @@ const Wrapper = ({ children }) => {
     }
 
     const updateBook = async (updatedBook) => {
-        // In a real app, this would be a supabase.from('books').update() call
         try {
             const { data, error } = await supabase
                 .from("books")
                 .update({
-                    title: updateBook.title,
-                    author: updateBook.author_name,
-                    genre: updateBook.genre || null,
-                    description: updateBook.description || null,
-                    isbn: updateBook.isbn || null,
-                    publisher: updateBook.publisher || null,
-                    total_copies: Number(updateBook.totalCopies),
-                    available_copies: Number(updateBook.totalCopies),
-                    cover_url: updateBook.bookImage || null
+                    title: updatedBook.title,
+                    author: updatedBook.author_name,
+                    genre: updatedBook.genre || null,
+                    description: updatedBook.description || null,
+                    isbn: updatedBook.isbn || null,
+                    publisher: updatedBook.publisher || null,
+                    total_copies: Number(updatedBook.totalCopies),
+                    available_copies: Number(updatedBook.totalCopies),
+                    cover_url: updatedBook.bookImage || null
                 })
-                .eq('id', updateBook.id)
+                .eq('id', updatedBook.id)
                 .select()
-                .single()
+                .single();
 
             if (error) {
-                throw error
+                throw error;
             }
-            setLibraryBooks(prev => prev.map(book => book.id === data.id ? data : book))
+
+            setLibraryBooks(prev =>
+                prev.map(book =>
+                    book.id === data.id ? data : book
+                )
+            );
+
             return {
                 success: true,
                 data
+            };
+
+        } catch (error) {
+            console.log('Error updating books:', error);
+            throw error;
+        }
+    };
+
+    const deleteBook = async (bookId) => {
+        try {
+            const { error } = await supabase
+                .from('books')
+                .delete()
+                .eq('id', bookId)
+            if (error) {
+                throw error;
+            }
+
+            setLibraryBooks(prev => prev.filter(book => book.id !== bookId));
+            return {
+                success: true
             }
         } catch (error) {
-            console.log('Error updating books', error);
-            throw error;
-
+            console.log('Error deleting books:', error);
+            throw error
         }
-
-        const deleteBook = async (bookKey) => {
-            return new Promise((resolve) => {
-                setTimeout(() => {
-                    setBooks(prev => prev.filter(book => book.key !== bookKey));
-                    resolve({ success: true });
-                }, 500);
-            });
-        };
-
-        // --- UI Handlers ---
-        const handleSidebar = () => setSidebarOpen(!sidebarOpen);
-
-        // --- Mock Auth Handlers ---
-        const login = (email, password) => {
-            const foundUser = MockUsers.find(u => u.email === email && u.password === password);
-            if (foundUser) {
-                setIsAuthenticated(true);
-                setUser({ email: foundUser.email, name: email.split('@')[0] });
-                setRole(foundUser.role);
-                return { success: true, role: foundUser.role };
-            } else {
-                return { success: false, message: "Invalid credentials" };
-            }
-        };
-
-        const logout = () => {
-            setIsAuthenticated(false);
-            setUser(null);
-            setRole(null);
-        };
-
-        // usereducer to handle the add book in the admin page
-
-        return (
-            <AuthContext.Provider value={{ isAuthenticated, user, role, isLoading, login, logout }}>
-                <BookContext.Provider value={{
-                    search,
-                    books,
-                    changeSearch,
-                    loadMore,
-                    fetchBookDetails,
-                    addBook,
-                    updateBook,
-                    deleteBook,
-                    libraryBooks,
-                    fetchLibraryBooks
-                }}>
-                    <AdminContext.Provider value={{ sidebarOpen, handleSidebar }}>
-                        <UserContext.Provider value={{ profile: user, history: [] }}>
-                            {children}
-                        </UserContext.Provider>
-                    </AdminContext.Provider>
-                </BookContext.Provider>
-            </AuthContext.Provider>
-        );
     };
-}
+
+    // --- UI Handlers ---
+    const handleSidebar = () => setSidebarOpen(!sidebarOpen);
+
+    // --- Mock Auth Handlers ---
+    const login = (email, password) => {
+        const foundUser = MockUsers.find(u => u.email === email && u.password === password);
+        if (foundUser) {
+            setIsAuthenticated(true);
+            setUser({ email: foundUser.email, name: email.split('@')[0] });
+            setRole(foundUser.role);
+            return { success: true, role: foundUser.role };
+        } else {
+            return { success: false, message: "Invalid credentials" };
+        }
+    };
+
+    const logout = () => {
+        setIsAuthenticated(false);
+        setUser(null);
+        setRole(null);
+    };
+
+    // usereducer to handle the add book in the admin page
+
+    return (
+        <AuthContext.Provider value={{ isAuthenticated, user, role, isLoading, login, logout }}>
+            <BookContext.Provider value={{
+                search,
+                books,
+                changeSearch,
+                loadMore,
+                fetchBookDetails,
+                addBook,
+                updateBook,
+                deleteBook,
+                libraryBooks,
+                fetchLibraryBooks
+            }}>
+                <AdminContext.Provider value={{ sidebarOpen, handleSidebar }}>
+                    <UserContext.Provider value={{ profile: user, history: [] }}>
+                        {children}
+                    </UserContext.Provider>
+                </AdminContext.Provider>
+            </BookContext.Provider>
+        </AuthContext.Provider>
+    );
+};
+
 
 export default Wrapper;
