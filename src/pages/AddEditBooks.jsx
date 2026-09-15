@@ -7,9 +7,8 @@ import {
 import { BookContext } from '../context/myContext';
 import Button from '../components/Button';
 import { useNavigate, useLocation } from 'react-router-dom';
-
+import { supabase } from '../services/supabase';
 // Initial Form State
-
 const initialBookForm = {
     id: null,
     key: '',
@@ -25,7 +24,6 @@ const initialBookForm = {
 };
 
 // Form Reducer
-
 const bookFormReducer = (state, action) => {
     if (action.type === 'UPDATE_FIELD') {
         return { ...state, [action.field]: action.value }
@@ -40,7 +38,6 @@ const bookFormReducer = (state, action) => {
 };
 
 // Component
-
 const AddEditBook = ({ onClose }) => {
     const navigate = useNavigate();
     const location = useLocation();
@@ -56,11 +53,9 @@ const AddEditBook = ({ onClose }) => {
     );
 
     const [isLoading, setIsLoading] = useState(false);
-
-
+    const [selectedFile, setSelectedFile] = useState(null);
+    const [previewUrl, setPreviewUrl] = useState('');
     // Populate form when editing or reset when adding
-
-
     useEffect(() => {
         if (bookToEdit) {
             dispatchBookForm({
@@ -76,18 +71,17 @@ const AddEditBook = ({ onClose }) => {
                     totalCopies: bookToEdit.total_copies || 1,
                     language: bookToEdit.language || 'English',
                     description: bookToEdit.description || '',
-                    bookImage: bookToEdit.cover_url || ''
+                    bookImage: bookToEdit.cover_url || '',
                 }
             });
+            setPreviewUrl(bookToEdit.cover_url || '');
         } else {
             dispatchBookForm({ type: 'RESET' });
+            setPreviewUrl('');
         }
     }, [bookToEdit]);
 
-
     // Handle Input
-
-
     const handleBookInputChange = (e) => {
         const { name, value } = e.target;
         dispatchBookForm({
@@ -97,22 +91,57 @@ const AddEditBook = ({ onClose }) => {
         });
     };
 
+    const uploadBookCover = async () => {
+        // No new image selected
+        if (!selectedFile) {
+            return booksForm.bookImage;
+        }
+
+        // Get the file extension
+        const fileExtension = selectedFile.name.split('.').pop();
+
+        // Create a unique file name
+        const fileName = `${Date.now()}.${fileExtension}`;
+
+        // File location inside the bucket
+        const filePath = `covers/${fileName}`;
+
+        // Upload the file
+        const { error: uploadError } = await supabase.storage
+            .from('book-covers')
+            .upload(filePath, selectedFile);
+
+        if (uploadError) {
+            throw uploadError;
+        }
+
+        // Get the public URL
+        const { data } = supabase.storage
+            .from('book-covers')
+            .getPublicUrl(filePath);
+
+        return data.publicUrl;
+    };
 
     // Submit Form
-
-
     const handleFormSubmit = async (e) => {
         e.preventDefault();
         setIsLoading(true);
 
         try {
+            const bookImage = await uploadBookCover();
+
+            const bookData = {
+                ...booksForm,
+                bookImage
+            };
+
             if (isEditMode) {
-                await updateBook(booksForm);
+                await updateBook(bookData);
             } else {
-                await addBook(booksForm);
+                await addBook(bookData);
             }
 
-            // Navigate back to the management list after success
             navigate('/admin/books');
 
             if (onClose) {
@@ -130,11 +159,9 @@ const AddEditBook = ({ onClose }) => {
 
     const labelClasses =
         "text-[11px] font-black tracking-widest uppercase mb-1.5 block text-slate-400";
-
     return (
         <div className="bg-[#F9F9FF] font-sora min-h-screen p-4 sm:p-8">
             <div className=" bg-white rounded-2xl border border-indigo-50 shadow-xl overflow-hidden">
-
                 {/* Header */}
                 <div className="px-4 sm:px-6 py-5 sm:py-6 border-b border-indigo-50 flex items-center justify-between bg-white sticky top-0 z-10">
                     <div className="flex items-center gap-3 min-w-0">
@@ -154,7 +181,6 @@ const AddEditBook = ({ onClose }) => {
 
                 {/* Form */}
                 <form onSubmit={handleFormSubmit} className="p-4 sm:p-6 space-y-6">
-
                     {/* Basic Information */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-5 sm:gap-6">
                         <div className="md:col-span-2">
@@ -253,13 +279,48 @@ const AddEditBook = ({ onClose }) => {
 
                         <div>
                             <label className={labelClasses}>Book Cover Image</label>
-                            <div className="border-2 border-dashed border-slate-200 rounded-xl p-6 sm:p-8 flex flex-col items-center justify-center bg-slate-50/50 hover:bg-slate-50 transition-colors cursor-pointer group">
+                            {previewUrl && (
+                                <div className="mb-4 flex justify-center">
+                                    <img
+                                        src={previewUrl}
+                                        alt="Book cover preview"
+                                        className="w-24 h-32 object-cover rounded-lg border border-slate-200 shadow-sm"
+                                    />
+                                </div>
+                            )}
+                            <label
+                                htmlFor="book-cover"
+                                className="border-2 border-dashed border-slate-200 rounded-xl p-6 sm:p-8 flex flex-col items-center justify-center bg-slate-50/50 hover:bg-slate-50 transition-colors cursor-pointer group"
+                            >
                                 <div className="w-12 h-12 bg-white rounded-full shadow-sm flex items-center justify-center text-slate-400 group-hover:text-primary-container transition-colors mb-3">
                                     <MdCloudUpload size={24} />
                                 </div>
-                                <p className="text-sm font-bold text-slate-700 text-center">Click to upload or drag and drop</p>
-                                <p className="text-[11px] text-slate-400 font-medium mt-1">SVG, PNG, JPG or GIF</p>
-                            </div>
+
+                                <p className="text-sm font-bold text-slate-700 text-center">
+                                    {selectedFile
+                                        ? selectedFile.name
+                                        : 'Click to upload or drag and drop'}
+                                </p>
+
+                                <p className="text-[11px] text-slate-400 font-medium mt-1">
+                                    SVG, PNG, JPG or GIF
+                                </p>
+
+                                <input
+                                    id="book-cover"
+                                    type="file"
+                                    accept="image/png,image/jpeg,image/gif,image/svg+xml"
+                                    className="hidden"
+                                    onChange={(e) => {
+                                        const file = e.target.files[0];
+
+                                        if (file) {
+                                            setSelectedFile(file);
+                                            setPreviewUrl(URL.createObjectURL(file));
+                                        }
+                                    }}
+                                />
+                            </label>
                         </div>
                     </div>
 

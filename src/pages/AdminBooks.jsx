@@ -1,5 +1,5 @@
 
-import { useContext } from 'react';
+import { useContext, useState } from 'react';
 import {
     MdSearch,
     MdAdd,
@@ -13,14 +13,20 @@ import toast from 'react-hot-toast';
 
 const AdminBooks = () => {
     const {
-        books,
-        search,
-        changeSearch,
-        deleteBook, libraryBooks, fetchLibraryBooks
+        deleteBook, libraryBooks
     } = useContext(BookContext);
+    const [inventorySearch, setInventorySearch] = useState('');
     console.log("My BookNexus library:", libraryBooks);
-
     const navigate = useNavigate();
+
+    const filteredBooks = libraryBooks.filter((book) => {
+        const searchTerm = inventorySearch.toLowerCase();
+
+        return (
+            book.title?.toLowerCase().includes(searchTerm) ||
+            book.author?.toLowerCase().includes(searchTerm)
+        );
+    });
 
     // Handle Delete
     const handleDeleteBook = (bookKey) => {
@@ -96,8 +102,8 @@ const AdminBooks = () => {
                         type="text"
                         placeholder="Search inventory..."
                         className="w-full bg-slate-50 border border-slate-200 rounded-lg py-2.5 pl-10 pr-4 text-sm outline-none focus:border-primary-container transition-all"
-                        value={search}
-                        onChange={(e) => changeSearch(e.target.value)}
+                        value={inventorySearch}
+                        onChange={(e) => setInventorySearch(e.target.value)}
                     />
 
                 </div>
@@ -115,6 +121,9 @@ const AdminBooks = () => {
                         <thead className="bg-slate-50 border-b border-slate-100">
 
                             <tr>
+                                <th className="px-6 py-4 text-[11px] font-black text-slate-500 uppercase tracking-widest">
+                                    Cover
+                                </th>
 
                                 <th className="px-6 py-4 text-[11px] font-black text-slate-500 uppercase tracking-widest">
                                     Book Title
@@ -138,12 +147,26 @@ const AdminBooks = () => {
 
                         <tbody className="divide-y divide-slate-50">
 
-                            {libraryBooks.map((book) => (
+                            {filteredBooks.map((book) => (
 
                                 <tr
                                     key={book.id}
                                     className="hover:bg-slate-50/50 transition-colors"
                                 >
+                                    {/* Book Cover */}
+                                    <td className="px-6 py-4">
+                                        {book.cover_url ? (
+                                            <img
+                                                src={book.cover_url}
+                                                alt={book.title}
+                                                className="w-10 h-14 object-cover rounded-md border border-slate-100"
+                                            />
+                                        ) : (
+                                            <div className="w-10 h-14 bg-slate-100 rounded-md flex items-center justify-center text-[9px] text-slate-400">
+                                                No cover
+                                            </div>
+                                        )}
+                                    </td>
 
                                     {/* Book Title */}
                                     <td className="px-6 py-4">
