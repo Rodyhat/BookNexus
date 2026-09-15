@@ -11,6 +11,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 // Initial Form State
 
 const initialBookForm = {
+    id: null,
     key: '',
     title: '',
     author_name: '',
@@ -65,18 +66,19 @@ const AddEditBook = ({ onClose }) => {
             dispatchBookForm({
                 type: 'SET_FORM',
                 payload: {
+                    id: bookToEdit.id || null,
                     key: bookToEdit.key || '',
                     title: bookToEdit.title || '',
-                    author_name: Array.isArray(bookToEdit.author_name)
-                        ? bookToEdit.author_name.join(', ')
-                        : bookToEdit.author_name || '',
+                    author_name: Array.isArray(bookToEdit.author)
+                        ? bookToEdit.author.join(', ')
+                        : bookToEdit.author || '',
                     genre: bookToEdit.genre || '',
                     isbn: bookToEdit.isbn || '',
                     publisher: bookToEdit.publisher || '',
-                    totalCopies: bookToEdit.totalCopies || 1,
+                    totalCopies: bookToEdit.total_copies || 1,
                     language: bookToEdit.language || 'English',
                     description: bookToEdit.description || '',
-                    bookImage: bookToEdit.bookImage || ''
+                    bookImage: bookToEdit.cover_url || ''
                 }
             });
         } else {

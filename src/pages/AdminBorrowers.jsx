@@ -142,7 +142,7 @@ const AdminBorrowers = () => {
 
                 {/* Responsive Table */}
                 <div className="w-full overflow-x-auto">
-                    <table className="w-full min-w-[760px] text-left">
+                    <table className="w-full min-w-190 text-left">
 
                         <thead className="bg-slate-50/50 border-b border-indigo-50">
                             <tr>
@@ -175,7 +175,7 @@ const AdminBorrowers = () => {
                                     className="hover:bg-slate-50/30 transition-colors group"
                                 >
                                     {/* Borrower */}
-                                    <td className="px-4 sm:px-6 py-4 sm:py-5 min-w-[180px]">
+                                    <td className="px-4 sm:px-6 py-4 sm:py-5 min-w-45">
                                         <div className="font-bold text-slate-800 text-sm whitespace-nowrap">
                                             {loan.borrowerName}
                                         </div>
@@ -186,8 +186,8 @@ const AdminBorrowers = () => {
                                     </td>
 
                                     {/* Book */}
-                                    <td className="px-4 sm:px-6 py-4 sm:py-5 min-w-[220px]">
-                                        <div className="font-bold text-slate-800 text-sm truncate max-w-[230px]">
+                                    <td className="px-4 sm:px-6 py-4 sm:py-5 min-w-55">
+                                        <div className="font-bold text-slate-800 text-sm truncate max-w-57.5">
                                             {loan.bookTitle}
                                         </div>
 
@@ -197,7 +197,7 @@ const AdminBorrowers = () => {
                                     </td>
 
                                     {/* Dates */}
-                                    <td className="px-4 sm:px-6 py-4 sm:py-5 min-w-[150px]">
+                                    <td className="px-4 sm:px-6 py-4 sm:py-5 min-w-37.5">
                                         <div className="flex items-center gap-2 text-xs">
                                             <span className="text-slate-400 font-medium">
                                                 Out:
@@ -214,11 +214,10 @@ const AdminBorrowers = () => {
                                             </span>
 
                                             <span
-                                                className={`font-black ${
-                                                    loan.status === 'Overdue'
+                                                className={`font-black ${loan.status === 'Overdue'
                                                         ? 'text-red-600'
                                                         : 'text-slate-800'
-                                                }`}
+                                                    }`}
                                             >
                                                 {loan.dueDate}
                                             </span>
@@ -318,7 +317,7 @@ const AdminBorrowers = () => {
                 </div>
 
                 {/* Audit Complete */}
-                <div className="bg-slate-900 md:col-span-2 lg:col-span-1 p-5 sm:p-6 rounded-2xl border border-slate-800 shadow-xl relative overflow-hidden flex flex-col justify-center min-h-[160px]">
+                <div className="bg-slate-900 md:col-span-2 lg:col-span-1 p-5 sm:p-6 rounded-2xl border border-slate-800 shadow-xl relative overflow-hidden flex flex-col justify-center min-h-40">
 
                     <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1507842217343-583bb7270b66?auto=format&fit=crop&w=800')] bg-cover bg-center opacity-20"></div>
 

@@ -1,5 +1,5 @@
 
-import { useContext, useEffect } from 'react';
+import { useContext } from 'react';
 import {
     MdSearch,
     MdAdd,
@@ -20,9 +20,6 @@ const AdminBooks = () => {
     } = useContext(BookContext);
     console.log("My BookNexus library:", libraryBooks);
 
-    useEffect(() => {
-        fetchLibraryBooks();
-    }, [])
     const navigate = useNavigate();
 
     // Handle Delete
@@ -141,10 +138,10 @@ const AdminBooks = () => {
 
                         <tbody className="divide-y divide-slate-50">
 
-                            {books.map((book) => (
+                            {libraryBooks.map((book) => (
 
                                 <tr
-                                    key={book.key}
+                                    key={book.id}
                                     className="hover:bg-slate-50/50 transition-colors"
                                 >
 
@@ -161,9 +158,9 @@ const AdminBooks = () => {
                                     <td className="px-6 py-4">
 
                                         <span className="text-xs text-slate-500 font-medium whitespace-nowrap">
-                                            {Array.isArray(book.author_name)
-                                                ? book.author_name.join(', ')
-                                                : book.author_name || 'Unknown'}
+                                            {Array.isArray(book.author)
+                                                ? book.author.join(', ')
+                                                : book.author || 'Unknown'}
                                         </span>
 
                                     </td>
@@ -172,7 +169,7 @@ const AdminBooks = () => {
                                     <td className="px-6 py-4">
 
                                         <span className="text-[10px] font-black bg-green-50 text-green-600 px-2 py-1 rounded-full uppercase whitespace-nowrap">
-                                            {book.status || 'Available'}
+                                            {book.available_copies > 0 ? 'Available' : 'Borrowed'}
                                         </span>
 
                                     </td>
@@ -197,7 +194,7 @@ const AdminBooks = () => {
                                                 className="p-2 text-slate-400 hover:text-red-600 transition-colors"
                                                 title="Delete book"
                                                 onClick={() =>
-                                                    handleDeleteBook(book.key)
+                                                    handleDeleteBook(book.id)
                                                 }
                                             >
                                                 <MdDeleteOutline size={18} />
