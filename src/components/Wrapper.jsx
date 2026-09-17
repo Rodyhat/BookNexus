@@ -2,8 +2,6 @@ import { useCallback, useEffect, useReducer, useState } from "react";
 import { AdminContext, AuthContext, BookContext, UserContext } from "../context/myContext";
 import axios from "axios";
 import { supabase } from "../services/supabase";
-import MockUsers from "../data/mockUsers";
-
 
 const Wrapper = ({ children }) => {
     // --- Book Catalog State ---
@@ -33,26 +31,98 @@ const Wrapper = ({ children }) => {
     useEffect(() => {
         fetchLibraryBooks()
     }, [])
+
     // --- Auth & User State ---
     const [user, setUser] = useState(null);
     const [role, setRole] = useState(null);
     const [isAuthenticated, setIsAuthenticated] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
 
-    // --- Admin Sidebar State ---
-    const [sidebarOpen, setSidebarOpen] = useState(false);
-
-    // Initial Auth Check
+    // --- Supabase Authentication ---
     useEffect(() => {
-        const checkAuth = async () => {
+        const getInitialSession = async () => {
             setIsLoading(true);
-            setTimeout(() => {
-                setIsLoading(false);
-            }, 500);
+
+            const { data, error } = await supabase.auth.getSession();
+
+            if (error) {
+                console.error("Error getting session:", error);
+            }
+
+            if (data?.session?.user) {
+                const currentUser = data.session.user;
+
+                setUser(currentUser);
+                setIsAuthenticated(true);
+                setRole(currentUser.user_metadata?.role || "user");
+            }
+
+            setIsLoading(false);
         };
-        checkAuth();
+
+        getInitialSession();
+
+        const {
+            data: { subscription },
+        } = supabase.auth.onAuthStateChange((_event, session) => {
+            if (session?.user) {
+                setUser(session.user);
+                setIsAuthenticated(true);
+                setRole(session.user.user_metadata?.role || "user");
+            } else {
+                setUser(null);
+                setIsAuthenticated(false);
+                setRole(null);
+            }
+        });
+
+        return () => {
+            subscription.unsubscribe();
+        };
     }, []);
 
+    // --- Login ---
+    const login = async (email, password) => {
+        const { data, error } = await supabase.auth.signInWithPassword({
+            email,
+            password,
+        });
+
+        if (error) {
+            return {
+                success: false,
+                message: error.message,
+            };
+        }
+
+        const loggedInUser = data.user;
+
+        setUser(loggedInUser);
+        setIsAuthenticated(true);
+        setRole(loggedInUser.user_metadata?.role || "user");
+
+        return {
+            success: true,
+            role: loggedInUser.user_metadata?.role || "user",
+        };
+    };
+
+    // --- Logout ---
+    const logout = async () => {
+        const { error } = await supabase.auth.signOut();
+
+        if (error) {
+            console.error("Logout error:", error);
+            return;
+        }
+
+        setUser(null);
+        setIsAuthenticated(false);
+        setRole(null);
+    };
+
+    // --- Admin Sidebar State ---
+    const [sidebarOpen, setSidebarOpen] = useState(false);
     // --- Book Fetching Logic ---
     const fetchBooks = async (query, pageNumber = 1) => {
         try {
@@ -245,25 +315,6 @@ const Wrapper = ({ children }) => {
 
     // --- UI Handlers ---
     const handleSidebar = () => setSidebarOpen(!sidebarOpen);
-
-    // --- Mock Auth Handlers ---
-    const login = (email, password) => {
-        const foundUser = MockUsers.find(u => u.email === email && u.password === password);
-        if (foundUser) {
-            setIsAuthenticated(true);
-            setUser({ email: foundUser.email, name: email.split('@')[0] });
-            setRole(foundUser.role);
-            return { success: true, role: foundUser.role };
-        } else {
-            return { success: false, message: "Invalid credentials" };
-        }
-    };
-
-    const logout = () => {
-        setIsAuthenticated(false);
-        setUser(null);
-        setRole(null);
-    };
 
     // usereducer to handle the add book in the admin page
 

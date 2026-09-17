@@ -22,6 +22,7 @@ import NotFound from "./pages/NotFound";
 import BorrowConfirm from "./pages/BorrowConfirm";
 import BorrowingSuccess from "./pages/BorrowSuccess";
 import SignUp from "./pages/SignUp";
+import ConfirmEmail from "./pages/ConfirmEmail";
 const App = () => {
 
   return (
@@ -37,6 +38,7 @@ const App = () => {
         <Route path='/bookdetails/:bookId' element={<BookDetails />}></Route>
         <Route path="/borrow-confirm/:bookId" element={<BorrowConfirm />} />
         <Route path="/borrow-success" element={<BorrowingSuccess />} />
+        <Route path="/confirm-email" element={<ConfirmEmail/>}/>
 
         {/* Admin pages */}
         <Route path="" element={<ProtectedRoute />}>

@@ -1,13 +1,10 @@
 import React, { useContext, useEffect, useReducer, useState } from 'react';
-import {
-    MdCloudUpload,
-    MdSave,
-    MdOutlineLibraryBooks
-} from 'react-icons/md';
+import { MdCloudUpload, MdSave, MdOutlineLibraryBooks } from 'react-icons/md';
 import { BookContext } from '../context/myContext';
 import Button from '../components/Button';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { supabase } from '../services/supabase';
+import toast from 'react-hot-toast';
 // Initial Form State
 const initialBookForm = {
     id: null,
@@ -42,19 +39,14 @@ const AddEditBook = ({ onClose }) => {
     const navigate = useNavigate();
     const location = useLocation();
     const { addBook, updateBook } = useContext(BookContext);
-
     // Detect if we are in Edit Mode based on data passed via navigate() state
     const bookToEdit = location.state?.bookToEdit;
     const isEditMode = !!bookToEdit;
-
-    const [booksForm, dispatchBookForm] = useReducer(
-        bookFormReducer,
-        initialBookForm
-    );
-
+    const [booksForm, dispatchBookForm] = useReducer(bookFormReducer, initialBookForm);
     const [isLoading, setIsLoading] = useState(false);
     const [selectedFile, setSelectedFile] = useState(null);
     const [previewUrl, setPreviewUrl] = useState('');
+    const [isDragging, setIsDragging] = useState(false);
     // Populate form when editing or reset when adding
     useEffect(() => {
         if (bookToEdit) {
@@ -81,6 +73,52 @@ const AddEditBook = ({ onClose }) => {
         }
     }, [bookToEdit]);
 
+
+    const handleDragOver = (e) => {
+        e.preventDefault();
+        setIsDragging(true);
+    };
+
+    const handleDragLeave = (e) => {
+        e.preventDefault();
+        setIsDragging(false);
+    };
+
+    const handleDrop = (e) => {
+        e.preventDefault();
+        setIsDragging(false);
+
+        const file = e.dataTransfer.files[0];
+
+        if (!file) return;
+
+        // Allowed file types
+        const allowedTypes = [
+            'image/png',
+            'image/jpeg',
+            'image/gif',
+            'image/svg+xml'
+        ];
+
+        // Maximum file size: 2 MB
+        const maxSize = 2 * 1024 * 1024;
+
+        // Check file type
+        if (!allowedTypes.includes(file.type)) {
+            toast.error('Please select a PNG, JPG, GIF, or SVG image.');
+            return;
+        }
+
+        // Check file size
+        if (file.size > maxSize) {
+            toast.error('Image is too large. Maximum size is 2 MB.');
+            return;
+        }
+
+        // File is valid
+        setSelectedFile(file);
+        setPreviewUrl(URL.createObjectURL(file));
+    };
     // Handle Input
     const handleBookInputChange = (e) => {
         const { name, value } = e.target;
@@ -154,11 +192,9 @@ const AddEditBook = ({ onClose }) => {
         }
     };
 
-    const inputClasses =
-        "w-full bg-slate-50 border border-slate-200 rounded-lg py-3 px-4 text-sm outline-none focus:border-[#3730A3] focus:ring-1 focus:ring-[#3730A3] transition-all font-medium text-slate-700 placeholder:text-slate-400";
+    const inputClasses = "w-full bg-slate-50 border border-slate-200 rounded-lg py-3 px-4 text-sm outline-none focus:border-[#3730A3] focus:ring-1 focus:ring-[#3730A3] transition-all font-medium text-slate-700 placeholder:text-slate-400";
 
-    const labelClasses =
-        "text-[11px] font-black tracking-widest uppercase mb-1.5 block text-slate-400";
+    const labelClasses = "text-[11px] font-black tracking-widest uppercase mb-1.5 block text-slate-400";
     return (
         <div className="bg-[#F9F9FF] font-sora min-h-screen p-4 sm:p-8">
             <div className=" bg-white rounded-2xl border border-indigo-50 shadow-xl overflow-hidden">
@@ -290,16 +326,25 @@ const AddEditBook = ({ onClose }) => {
                             )}
                             <label
                                 htmlFor="book-cover"
-                                className="border-2 border-dashed border-slate-200 rounded-xl p-6 sm:p-8 flex flex-col items-center justify-center bg-slate-50/50 hover:bg-slate-50 transition-colors cursor-pointer group"
+                                onDragOver={handleDragOver}
+                                onDragLeave={handleDragLeave}
+                                onDrop={handleDrop}
+                                className={`border-2 border-dashed rounded-xl p-6 sm:p-8 flex flex-col items-center justify-center transition-all cursor-pointer group ${isDragging
+                                    ? 'border-primary-container bg-indigo-50 scale-[1.01]'
+                                    : 'border-slate-200 bg-slate-50/50 hover:bg-slate-50'
+                                    }`}
                             >
                                 <div className="w-12 h-12 bg-white rounded-full shadow-sm flex items-center justify-center text-slate-400 group-hover:text-primary-container transition-colors mb-3">
                                     <MdCloudUpload size={24} />
                                 </div>
 
-                                <p className="text-sm font-bold text-slate-700 text-center">
-                                    {selectedFile
-                                        ? selectedFile.name
-                                        : 'Click to upload or drag and drop'}
+                                <p className={`text-sm font-bold text-center ${isDragging ? 'text-primary-container]' : 'text-slate-700'
+                                    }`}>
+                                    {isDragging
+                                        ? 'Drop cover here'
+                                        : selectedFile
+                                            ? selectedFile.name
+                                            : 'Click to upload or drag and drop'}
                                 </p>
 
                                 <p className="text-[11px] text-slate-400 font-medium mt-1">
@@ -314,10 +359,36 @@ const AddEditBook = ({ onClose }) => {
                                     onChange={(e) => {
                                         const file = e.target.files[0];
 
-                                        if (file) {
-                                            setSelectedFile(file);
-                                            setPreviewUrl(URL.createObjectURL(file));
+                                        if (!file) return;
+
+                                        // Allowed file types
+                                        const allowedTypes = [
+                                            'image/png',
+                                            'image/jpeg',
+                                            'image/gif',
+                                            'image/svg+xml'
+                                        ];
+
+                                        // Maximum file size: 2 MB
+                                        const maxSize = 2 * 1024 * 1024;
+
+                                        // Check file type
+                                        if (!allowedTypes.includes(file.type)) {
+                                            toast.error('Please select a PNG, JPG, GIF, or SVG image.');
+                                            e.target.value = '';
+                                            return;
                                         }
+
+                                        // Check file size
+                                        if (file.size > maxSize) {
+                                            toast.error('Image is too large. Maximum size is 2 MB.');
+                                            e.target.value = '';
+                                            return;
+                                        }
+
+                                        // File is valid
+                                        setSelectedFile(file);
+                                        setPreviewUrl(URL.createObjectURL(file));
                                     }}
                                 />
                             </label>

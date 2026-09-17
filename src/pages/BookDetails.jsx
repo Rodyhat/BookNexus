@@ -1,12 +1,13 @@
 import React, { useContext, useEffect, useState } from "react";
 import DetailsNavbar from "../components/DetailsNavbar";
-import { BookContext } from "../context/myContext";
+import { BookContext, AuthContext } from "../context/myContext";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { FaArrowLeft, FaBook } from "react-icons/fa";
 import Button from "../components/Button";
 
 const BookDetails = () => {
     const { fetchBookDetails } = useContext(BookContext);
+    const { IsAuthenticated } = useContext(AuthContext)
     const { bookId } = useParams();
     const navigate = useNavigate();
 
@@ -33,6 +34,14 @@ const BookDetails = () => {
 
     // Handler to navigate to the confirmation request screen
     const handleBorrowClick = () => {
+        if (!IsAuthenticated) {
+            navigate('/signin', {
+                state: {
+                    from: `/bookdetails/${bookId}`
+                }
+            })
+            return
+        }
         // Navigates to the borrowing confirmation page, passing book data in state if needed
         navigate(`/borrow-confirm/${bookId}`);
     };

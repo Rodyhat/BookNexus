@@ -6,7 +6,7 @@ import { FiUser, FiMail, FiLock, FiEye, FiEyeOff } from 'react-icons/fi';
 import { MdPersonAdd } from 'react-icons/md';
 import Button from '../components/Button';
 import logo from '/src/assets/logo.png';
-
+import { supabase } from '../services/supabase';
 const SignUp = () => {
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -48,25 +48,46 @@ const SignUp = () => {
             setSuccessMessage('');
 
             try {
-                // When ready for Supabase:
-                // const { data, error } = await supabase.auth.signUp({
-                //   email: values.email,
-                //   password: values.password,
-                //   options: { data: { full_name: values.fullName, role: 'user' } }
-                // });
-                // if (error) throw error;
+                // Save where the user should return after email confirmation
+                if (redirectTarget) {
+                    sessionStorage.setItem("borrowRedirect", redirectTarget);
+                }
 
-                setSuccessMessage('Account created successfully! Redirecting to sign in...');
+                const { data, error } = await supabase.auth.signUp({
+                    email: values.email,
+                    password: values.password,
+                    options: {
+                        data: {
+                            full_name: values.fullName,
+                            role: 'user',
+                        },
+                        emailRedirectTo: `${window.location.origin}/confirm-email`,
+                    },
+                });
+
+                if (error) {
+                    throw error;
+                }
+
+                setSuccessMessage(
+                    'Account created successfully! Please check your email to confirm your account.'
+                );
+
                 setTimeout(() => {
-                    navigate('/signin', {
+                    navigate('/confirm-email', {
                         state: {
                             from: redirectTarget,
-                            registeredEmail: values.email
-                        }
+                            registeredEmail: values.email,
+                        },
                     });
-                }, 1200);
+                }, 1500);
+
             } catch (err) {
-                setSignUpError(err.message || 'Failed to create account. Please try again.');
+                console.error("Sign up error:", err);
+
+                setSignUpError(
+                    err.message || 'Failed to create account. Please try again.'
+                );
             } finally {
                 setSubmitting(false);
             }

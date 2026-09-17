@@ -33,28 +33,33 @@ const SignIn = () => {
                 .min(6, 'Password must be minimum of 6 characters')
                 .required('Password is required')
         }),
-        onSubmit: (values) => {
-            // Reset feedback alerts on new submission attempt
-            setSignInError('');
-            setSuccessMessage('');
+        onSubmit: async (values, { setSubmitting }) => {
+            try {
+                setSignInError('');
+                setSuccessMessage('');
 
-            // Using login function from AuthContext
-            const result = login(values.email, values.password);
+                const result = await login(values.email, values.password);
 
-            if (result && result.success) {
-                setSuccessMessage('Signed in successfully! Redirecting...');
-                setTimeout(() => {
-                    if (redirectTarget) {
-                        navigate(redirectTarget);
-                    } else if (result.role === 'admin') {
-                        navigate('/admin/dashboard');
-                    } else {
-                        navigate('/user/dashboard');
-                    }
-                }, 800);
-            } else {
-                // Fixed: setSignInError updater call
-                setSignInError(result?.message || "Invalid Email or Password");
+                if (result && result.success) {
+                    setSuccessMessage('Signed in successfully! Redirecting...');
+
+                    setTimeout(() => {
+                        if (redirectTarget) {
+                            navigate(redirectTarget);
+                        } else if (result.role === 'admin') {
+                            navigate('/admin/dashboard');
+                        } else {
+                            navigate('/user/dashboard');
+                        }
+                    }, 800);
+                } else {
+                    setSignInError(result?.message || 'Invalid Email or Password');
+                }
+            } catch (error) {
+                console.error("Sign in error:", error);
+                setSignInError("Unable to sign in. Please try again.");
+            } finally {
+                setSubmitting(false);
             }
         }
     });
