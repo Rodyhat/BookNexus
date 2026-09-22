@@ -7,67 +7,145 @@ const ConfirmEmail = () => {
     const navigate = useNavigate();
 
     const [isConfirmed, setIsConfirmed] = useState(false);
-    const [message, setMessage] = useState(
-        "Please check your email and click the confirmation link to verify your account."
-    );
+    const [error, setError] = useState("");
 
     useEffect(() => {
+        let subscription;
+
         const handleConfirmation = async () => {
             try {
-                const { data, error } = await supabase.auth.getSession();
+                const params = new URLSearchParams(
+                    window.location.search
+                );
 
-                if (error) {
-                    console.error("Confirmation error:", error);
+                const code = params.get("code");
+
+                /*
+                 * The redirect destination was already saved
+                 * by SignUp in sessionStorage.
+                 *
+                 * Example:
+                 * borrowRedirect = /borrow-confirm/OL12345W
+                 */
+
+                if (code) {
+                    const { error } =
+                        await supabase.auth.exchangeCodeForSession(
+                            code
+                        );
+
+                    if (error) {
+                        console.error(
+                            "Confirmation error:",
+                            error
+                        );
+
+                        setError(
+                            "We couldn't confirm your email. Please try the confirmation link again."
+                        );
+
+                        return;
+                    }
+
+                    setIsConfirmed(true);
+
+                    // Remove the confirmation code from URL
+                    window.history.replaceState(
+                        {},
+                        document.title,
+                        "/confirm-email"
+                    );
+
+                    /*
+                     * IMPORTANT:
+                     *
+                     * Do not remove borrowRedirect here.
+                     *
+                     * We still need it after the user signs in.
+                     */
+
+                    setTimeout(() => {
+                        navigate("/signin", {
+                            replace: true,
+                        });
+                    }, 1500);
+
                     return;
                 }
 
-                // No session yet = user is still waiting to click the email
-                if (!data?.session?.user) {
-                    return;
-                }
+                /*
+                 * Handle cases where Supabase completes
+                 * authentication through an auth event.
+                 */
+                const authListener =
+                    supabase.auth.onAuthStateChange(
+                        (event, session) => {
+                            if (
+                                event === "SIGNED_IN" &&
+                                session?.user
+                            ) {
+                                setIsConfirmed(true);
 
-                // Session exists = email confirmation has completed
-                setIsConfirmed(true);
-                setMessage("Email confirmed successfully! Redirecting...");
+                                setTimeout(() => {
+                                    navigate("/signin", {
+                                        replace: true,
+                                    });
+                                }, 1500);
+                            }
+                        }
+                    );
 
-                const redirectTarget =
-                    sessionStorage.getItem("borrowRedirect") ||
-                    "/user/dashboard";
+                subscription =
+                    authListener.data.subscription;
+            } catch (err) {
+                console.error(
+                    "Confirmation error:",
+                    err
+                );
 
-                sessionStorage.removeItem("borrowRedirect");
-
-                setTimeout(() => {
-                    navigate(redirectTarget, { replace: true });
-                }, 1000);
-
-            } catch (error) {
-                console.error("Confirmation error:", error);
+                setError(
+                    "Something went wrong while confirming your email."
+                );
             }
         };
 
         handleConfirmation();
+
+        return () => {
+            subscription?.unsubscribe();
+        };
     }, [navigate]);
 
     return (
-        <div className=" bg-[#F9F9FF] flex items-center justify-center px-4">
-            <div className="bg-white rounded-2xl shadow-sm border border-indigo-50 p-8  w-full text-center">
+        <div className="min-h-screen bg-[#F9F9FF] flex items-center justify-center px-4 font-sora">
+            <div className="bg-white rounded-2xl shadow-sm border border-indigo-50 p-8 w-full max-w-md text-center">
 
                 <div className="flex justify-center mb-5">
-                    {isConfirmed ? (
+                    {error ? (
+                        <div className="text-4xl text-red-500">
+                            !
+                        </div>
+                    ) : isConfirmed ? (
                         <FaCheckCircle className="text-5xl text-green-500" />
                     ) : (
-                        <FaSpinner className="text-4xl text-primary-container animate-spin" />
+                        <FaSpinner className="text-4xl text-primary animate-spin" />
                     )}
                 </div>
 
                 <h1 className="text-2xl font-bold text-gray-900 mb-3">
-                    {isConfirmed
-                        ? "Email Confirmed!"
-                        : "Check Your Email"}
+                    {error
+                        ? "Confirmation Failed"
+                        : isConfirmed
+                            ? "Email Confirmed!"
+                            : "Check Your Email"}
                 </h1>
 
                 <p className="text-gray-600 text-sm leading-6">
-                    {message}
+                    {error
+                        ? error
+                        : isConfirmed
+                            ? "Your email has been confirmed. Redirecting you to sign in..."
+                            : "Please check your email and click the confirmation link to verify your account."}
                 </p>
             </div>
         </div>

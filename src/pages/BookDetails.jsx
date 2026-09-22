@@ -7,7 +7,7 @@ import Button from "../components/Button";
 
 const BookDetails = () => {
     const { fetchBookDetails } = useContext(BookContext);
-    const { IsAuthenticated } = useContext(AuthContext)
+    const { isAuthenticated } = useContext(AuthContext)
     const { bookId } = useParams();
     const navigate = useNavigate();
 
@@ -32,20 +32,21 @@ const BookDetails = () => {
         if (bookId) getBookDetails();
     }, [bookId, fetchBookDetails]);
 
-    // Handler to navigate to the confirmation request screen
     const handleBorrowClick = () => {
-        if (!IsAuthenticated) {
-            navigate('/signin', {
-                state: {
-                    from: `/bookdetails/${bookId}`
-                }
-            })
-            return
-        }
-        // Navigates to the borrowing confirmation page, passing book data in state if needed
-        navigate(`/borrow-confirm/${bookId}`);
-    };
+        const borrowDestination = `/borrow-confirm/${bookId}`;
 
+        if (!isAuthenticated) {
+            navigate("/signin", {
+                state: {
+                    from: borrowDestination,
+                },
+            });
+
+            return;
+        }
+
+        navigate(borrowDestination);
+    };
     return (
         <div className="min-h-screen bg-[#F9F9FF] font-sora">
             <DetailsNavbar />
