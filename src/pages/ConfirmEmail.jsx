@@ -10,8 +10,6 @@ const ConfirmEmail = () => {
     const [error, setError] = useState("");
 
     useEffect(() => {
-        let subscription;
-
         const handleConfirmation = async () => {
             try {
                 const params = new URLSearchParams(
@@ -21,82 +19,74 @@ const ConfirmEmail = () => {
                 const code = params.get("code");
 
                 /*
-                 * The redirect destination was already saved
-                 * by SignUp in sessionStorage.
+                 * The borrow destination is already stored
+                 * before the user leaves the signup page.
                  *
                  * Example:
-                 * borrowRedirect = /borrow-confirm/OL12345W
+                 * /borrow-confirm/123
                  */
-
-                if (code) {
-                    const { error } =
-                        await supabase.auth.exchangeCodeForSession(
-                            code
-                        );
-
-                    if (error) {
-                        console.error(
-                            "Confirmation error:",
-                            error
-                        );
-
-                        setError(
-                            "We couldn't confirm your email. Please try the confirmation link again."
-                        );
-
-                        return;
-                    }
-
-                    setIsConfirmed(true);
-
-                    // Remove the confirmation code from URL
-                    window.history.replaceState(
-                        {},
-                        document.title,
-                        "/confirm-email"
+                const redirectTarget =
+                    sessionStorage.getItem(
+                        "borrowRedirect"
                     );
 
-                    /*
-                     * IMPORTANT:
-                     *
-                     * Do not remove borrowRedirect here.
-                     *
-                     * We still need it after the user signs in.
-                     */
+                console.log(
+                    "Saved borrow redirect:",
+                    redirectTarget
+                );
 
-                    setTimeout(() => {
-                        navigate("/signin", {
-                            replace: true,
-                        });
-                    }, 1500);
+                if (!code) {
+                    setError(
+                        "No confirmation code was found."
+                    );
+                    return;
+                }
+
+                const { error: exchangeError } =
+                    await supabase.auth.exchangeCodeForSession(
+                        code
+                    );
+
+                if (exchangeError) {
+                    console.error(
+                        "Confirmation error:",
+                        exchangeError
+                    );
+
+                    setError(
+                        "We couldn't confirm your email. Please try the confirmation link again."
+                    );
 
                     return;
                 }
 
+                setIsConfirmed(true);
+
                 /*
-                 * Handle cases where Supabase completes
-                 * authentication through an auth event.
+                 * Remove the confirmation code from
+                 * the browser URL.
                  */
-                const authListener =
-                    supabase.auth.onAuthStateChange(
-                        (event, session) => {
-                            if (
-                                event === "SIGNED_IN" &&
-                                session?.user
-                            ) {
-                                setIsConfirmed(true);
+                window.history.replaceState(
+                    {},
+                    document.title,
+                    "/confirm-email"
+                );
 
-                                setTimeout(() => {
-                                    navigate("/signin", {
-                                        replace: true,
-                                    });
-                                }, 1500);
-                            }
-                        }
-                    );
-
-                subscription =
-                    authListener.data.subscription;
+                /*
+                 * IMPORTANT:
+                 *
+                 * Do NOT remove borrowRedirect here.
+                 *
+                 * SignIn will use it after the user logs in.
+                 */
+                setTimeout(() => {
+                    navigate("/signin", {
+                        replace: true,
+                        state: {
+                            from: redirectTarget,
+                        },
+                    });
+                }, 1500);
             } catch (err) {
                 console.error(
                     "Confirmation error:",
@@ -110,10 +100,6 @@ const ConfirmEmail = () => {
         };
 
         handleConfirmation();
-
-        return () => {
-            subscription?.unsubscribe();
-        };
     }, [navigate]);
 
     return (
@@ -137,7 +123,7 @@ const ConfirmEmail = () => {
                         ? "Confirmation Failed"
                         : isConfirmed
                             ? "Email Confirmed!"
-                            : "Check Your Email"}
+                            : "Confirming Email..."}
                 </h1>
 
                 <p className="text-gray-600 text-sm leading-6">
@@ -145,7 +131,7 @@ const ConfirmEmail = () => {
                         ? error
                         : isConfirmed
                             ? "Your email has been confirmed. Redirecting you to sign in..."
-                            : "Please check your email and click the confirmation link to verify your account."}
+                            : "Please wait while we confirm your email."}
                 </p>
             </div>
         </div>

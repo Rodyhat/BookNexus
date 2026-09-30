@@ -1,5 +1,5 @@
 import React, { useContext } from "react";
-import { Navigate, Outlet } from "react-router-dom";
+import { Navigate, Outlet, useLocation } from "react-router-dom";
 import { AuthContext } from "../context/myContext";
 
 const ProtectedRoute = ({ requiredRole }) => {
@@ -8,6 +8,8 @@ const ProtectedRoute = ({ requiredRole }) => {
         role,
         isLoading,
     } = useContext(AuthContext);
+
+    const location = useLocation();
 
     if (isLoading) {
         return (
@@ -21,6 +23,9 @@ const ProtectedRoute = ({ requiredRole }) => {
         return (
             <Navigate
                 to="/signin"
+                state={{
+                    from: location.pathname + location.search,
+                }}
                 replace
             />
         );

@@ -1,3 +1,4 @@
+
 import * as Yup from "yup";
 import Button from "../components/Button";
 import { FaArrowRight } from "react-icons/fa";
@@ -17,14 +18,24 @@ const SignIn = () => {
     const navigate = useNavigate();
     const location = useLocation();
 
-    // Preserve the destination the user was trying to reach.
-    // It can be either a pathname string or a React Router location object.
+    /*
+     * First check React Router state.
+     * This is used when the user came directly from BookDetails.
+     */
     const from = location.state?.from;
+
+    /*
+     * If the user went through email verification,
+     * React Router state may be gone.
+     *
+     * sessionStorage survives that navigation.
+     */
+    const storedRedirect = sessionStorage.getItem("borrowRedirect");
 
     const redirectTarget =
         typeof from === "string"
             ? from
-            : from?.pathname || null;
+            : from?.pathname || storedRedirect || null;
 
     const formik = useFormik({
         initialValues: {
@@ -38,7 +49,10 @@ const SignIn = () => {
                 .email("Email must be in valid email format"),
 
             password: Yup.string()
-                .min(6, "Password must be minimum of 6 characters")
+                .min(
+                    6,
+                    "Password must be minimum of 6 characters"
+                )
                 .required("Password is required"),
         }),
 
@@ -58,16 +72,29 @@ const SignIn = () => {
                     );
 
                     setTimeout(() => {
-                        // If the user came from Borrow Material,
-                        // continue from where they stopped.
+                        /*
+                         * If the user originally wanted to borrow
+                         * a book, continue that flow.
+                         */
                         if (redirectTarget) {
+                            /*
+                             * We have successfully consumed the
+                             * saved borrow destination.
+                             */
+                            sessionStorage.removeItem(
+                                "borrowRedirect"
+                            );
+
                             navigate(redirectTarget, {
                                 replace: true,
                             });
+
                             return;
                         }
 
-                        // Otherwise use the normal dashboard destination.
+                        /*
+                         * Normal login destination.
+                         */
                         if (result.role === "admin") {
                             navigate("/admin/dashboard", {
                                 replace: true,
@@ -81,11 +108,12 @@ const SignIn = () => {
                 } else {
                     setSignInError(
                         result?.message ||
-                            "Invalid Email or Password"
+                        "Invalid Email or Password"
                     );
                 }
             } catch (error) {
                 console.error("Sign in error:", error);
+
                 setSignInError(
                     "Unable to sign in. Please try again."
                 );

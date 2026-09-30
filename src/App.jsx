@@ -32,117 +32,42 @@ const App = () => {
       />
 
       <Routes>
-
-        {/* ================= PUBLIC PAGES ================= */}
-
+        {/*  PUBLIC PAGES  */}
         <Route path="/" element={<LandingPage />} />
-
-        <Route
-          path="/signin"
-          element={<SignIn />}
-        />
-
-        <Route
-          path="/signup"
-          element={<SignUp />}
-        />
-
-        <Route
-          path="/trendinglist"
-          element={<TrendList />}
-        />
+        <Route path="/signin" element={<SignIn />} />
+        <Route path="/signup" element={<SignUp />} />
+        <Route path="/trendinglist" element={<TrendList />} />
 
         {/* Guest can view book details */}
-        <Route
-          path="/bookdetails/:bookId"
-          element={<BookDetails />}
-        />
+        <Route path="/bookdetails/:bookId" element={<BookDetails />} />
+        <Route path="/confirm-email" element={<ConfirmEmail />} />
 
-        <Route
-          path="/confirm-email"
-          element={<ConfirmEmail />}
-        />
-
-
-        {/* ================= PROTECTED PAGES ================= */}
-
+        {/* PROTECTED PAGES  */}
         <Route element={<ProtectedRoute />}>
-
           {/* Borrowing */}
-          <Route
-            path="/borrow-confirm/:bookId"
-            element={<BorrowConfirm />}
-          />
-
-          <Route
-            path="/borrow-success"
-            element={<BorrowingSuccess />}
-          />
-
+          <Route path="/borrow-confirm/:bookId" element={<BorrowConfirm />} />
+          <Route path="/borrow-success" element={<BorrowingSuccess />} />
 
           {/* Admin */}
-          <Route
-            path="/admin"
-            element={<AdminLayout />}
-          >
-            <Route
-              path="dashboard"
-              element={<AdminDashboard />}
-            />
-
-            <Route
-              path="books"
-              element={<AdminBooks />}
-            />
-
-            <Route
-              path="settings"
-              element={<AdminSettiings />}
-            />
-
-            <Route
-              path="borrowers"
-              element={<AdminBorrowers />}
-            />
-
-            <Route
-              path="add_edit_books"
-              element={<AddEditBook />}
-            />
+          <Route path="/admin" element={<AdminLayout />}>
+            <Route path="dashboard" element={<AdminDashboard />} />
+            <Route path="books" element={<AdminBooks />} />
+            <Route path="settings" element={<AdminSettiings />} />
+            <Route path="borrowers" element={<AdminBorrowers />} />
+            <Route path="add_edit_books" element={<AddEditBook />} />
           </Route>
 
 
           {/* User */}
-          <Route
-            path="/user"
-            element={<UserLayout />}
-          >
-            <Route
-              path="dashboard"
-              element={<UserDashboard />}
-            />
-
-            <Route
-              path="mybooks"
-              element={<UserBooks />}
-            />
-
-            <Route
-              path="profile"
-              element={<UserProfile />}
-            />
+          <Route path="/user" element={<UserLayout />}>
+            <Route path="dashboard" element={<UserDashboard />} />
+            <Route path="mybooks" element={<UserBooks />} />
+            <Route path="profile" element={<UserProfile />} />
           </Route>
-
         </Route>
 
-
-        {/* ================= 404 ================= */}
-
-        <Route
-          path="*"
-          element={<NotFound />}
-        />
-
+        {/* 404 */}
+        <Route path="*" element={<NotFound />} />
       </Routes>
     </Wrapper>
   );

@@ -30,10 +30,13 @@ const SignUp = () => {
 
     const from = location.state?.from;
 
+    const storedRedirect =
+        sessionStorage.getItem("borrowRedirect");
+
     const redirectTarget =
         typeof from === "string"
             ? from
-            : from?.pathname || null;
+            : from?.pathname || storedRedirect || null;
 
     const formik = useFormik({
         initialValues: {
@@ -134,7 +137,7 @@ const SignUp = () => {
 
                 setSignUpError(
                     err.message ||
-                        "Failed to create account. Please try again."
+                    "Failed to create account. Please try again."
                 );
             } finally {
                 setSubmitting(false);
