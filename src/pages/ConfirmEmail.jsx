@@ -1,138 +1,85 @@
 import React, { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation, Link } from "react-router-dom";
 import { supabase } from "../services/supabase";
-import { FaCheckCircle, FaSpinner } from "react-icons/fa";
+import { FaCheckCircle, FaSpinner, FaEnvelope } from "react-icons/fa";
+import { consumeRedirect } from "../utils/borrowRedirect";
 
 const ConfirmEmail = () => {
     const navigate = useNavigate();
+    const location = useLocation();
+    const registeredEmail = location.state?.registeredEmail;
 
-    const [isConfirmed, setIsConfirmed] = useState(false);
-    const [error, setError] = useState("");
+    // "inbox" = just signed up, waiting for the user to click the email link
+    const [status, setStatus] = useState(registeredEmail ? "inbox" : "loading");
 
     useEffect(() => {
-        const handleConfirmation = async () => {
-            try {
-                const params = new URLSearchParams(
-                    window.location.search
-                );
+        if (registeredEmail) return;
 
-                const code = params.get("code");
+        let timer;
+        let cancelled = false;
 
-                /*
-                 * The borrow destination is already stored
-                 * before the user leaves the signup page.
-                 *
-                 * Example:
-                 * /borrow-confirm/123
-                 */
-                const redirectTarget =
-                    sessionStorage.getItem(
-                        "borrowRedirect"
-                    );
+        const finish = async () => {
+            // supabase-js already processes the code/hash in the URL;
+            // getSession() waits for that to finish.
+            const { data, error } = await supabase.auth.getSession();
+            if (cancelled) return;
 
-                console.log(
-                    "Saved borrow redirect:",
-                    redirectTarget
-                );
-
-                if (!code) {
-                    setError(
-                        "No confirmation code was found."
-                    );
-                    return;
-                }
-
-                const { error: exchangeError } =
-                    await supabase.auth.exchangeCodeForSession(
-                        code
-                    );
-
-                if (exchangeError) {
-                    console.error(
-                        "Confirmation error:",
-                        exchangeError
-                    );
-
-                    setError(
-                        "We couldn't confirm your email. Please try the confirmation link again."
-                    );
-
-                    return;
-                }
-
-                setIsConfirmed(true);
-
-                /*
-                 * Remove the confirmation code from
-                 * the browser URL.
-                 */
-                window.history.replaceState(
-                    {},
-                    document.title,
-                    "/confirm-email"
-                );
-
-                /*
-                 * IMPORTANT:
-                 *
-                 * Do NOT remove borrowRedirect here.
-                 *
-                 * SignIn will use it after the user logs in.
-                 */
-                setTimeout(() => {
-                    navigate("/signin", {
-                        replace: true,
-                        state: {
-                            from: redirectTarget,
-                        },
-                    });
-                }, 1500);
-            } catch (err) {
-                console.error(
-                    "Confirmation error:",
-                    err
-                );
-
-                setError(
-                    "Something went wrong while confirming your email."
-                );
+            if (error || !data.session) {
+                setStatus("error");
+                return;
             }
+
+            window.history.replaceState({}, document.title, "/confirm-email");
+            setStatus("confirmed");
+
+            timer = setTimeout(() => {
+                navigate(consumeRedirect() || "/user/dashboard", { replace: true });
+            }, 1200);
         };
 
-        handleConfirmation();
-    }, [navigate]);
+        finish();
+        return () => {
+            cancelled = true;
+            clearTimeout(timer);
+        };
+    }, [navigate, registeredEmail]);
+
+    const views = {
+        loading: {
+            icon: <FaSpinner className="text-4xl text-primary animate-spin" />,
+            title: "Confirming Email...",
+            text: "Please wait while we confirm your email.",
+        },
+        inbox: {
+            icon: <FaEnvelope className="text-4xl text-primary" />,
+            title: "Check your inbox",
+            text: `We sent a confirmation link to ${registeredEmail}. Click it to activate your account.`,
+        },
+        confirmed: {
+            icon: <FaCheckCircle className="text-5xl text-green-500" />,
+            title: "Email Confirmed!",
+            text: "Taking you back now...",
+        },
+        error: {
+            icon: <div className="text-4xl text-red-500">!</div>,
+            title: "Confirmation Failed",
+            text: "This link is invalid, expired, or was opened in a different browser. Try signing in; if your email is already confirmed it will work.",
+        },
+    };
+
+    const v = views[status];
 
     return (
         <div className="min-h-screen bg-[#F9F9FF] flex items-center justify-center px-4 font-sora">
             <div className="bg-white rounded-2xl shadow-sm border border-indigo-50 p-8 w-full max-w-md text-center">
-
-                <div className="flex justify-center mb-5">
-                    {error ? (
-                        <div className="text-4xl text-red-500">
-                            !
-                        </div>
-                    ) : isConfirmed ? (
-                        <FaCheckCircle className="text-5xl text-green-500" />
-                    ) : (
-                        <FaSpinner className="text-4xl text-primary animate-spin" />
-                    )}
-                </div>
-
-                <h1 className="text-2xl font-bold text-gray-900 mb-3">
-                    {error
-                        ? "Confirmation Failed"
-                        : isConfirmed
-                            ? "Email Confirmed!"
-                            : "Confirming Email..."}
-                </h1>
-
-                <p className="text-gray-600 text-sm leading-6">
-                    {error
-                        ? error
-                        : isConfirmed
-                            ? "Your email has been confirmed. Redirecting you to sign in..."
-                            : "Please wait while we confirm your email."}
-                </p>
+                <div className="flex justify-center mb-5">{v.icon}</div>
+                <h1 className="text-2xl font-bold text-gray-900 mb-3">{v.title}</h1>
+                <p className="text-gray-600 text-sm leading-6">{v.text}</p>
+                {status === "error" && (
+                    <Link to="/signin" className="inline-block mt-5 text-primary font-semibold text-sm">
+                        Go to Sign In
+                    </Link>
+                )}
             </div>
         </div>
     );

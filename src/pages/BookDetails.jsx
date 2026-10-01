@@ -78,7 +78,7 @@ const BookDetails = () => {
                         <div className="flex flex-col md:flex-row items-start gap-10 lg:gap-16">
                             {/* BOOK COVER */}
                             <div className="w-full md:w-80 shrink-0">
-                                <div className="bg-slate-50 rounded-2xl p-8 border border-slate-100 shadow-inner flex justify-center items-center aspect-[3/4">
+                                <div className="bg-slate-50 rounded-2xl p-8 border border-slate-100 shadow-inner flex justify-center items-center aspect-3/4">
                                     {book.covers?.[0] ? (
                                         <img
                                             src={`https://covers.openlibrary.org/b/id/${book.covers[0]}-L.jpg`}

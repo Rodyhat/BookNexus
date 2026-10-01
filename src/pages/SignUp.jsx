@@ -1,42 +1,35 @@
 import React, { useState } from "react";
 import { useFormik } from "formik";
 import * as Yup from "yup";
-import {
-    useNavigate,
-    useLocation,
-    Link,
-} from "react-router-dom";
-import {
-    FiUser,
-    FiMail,
-    FiLock,
-    FiEye,
-    FiEyeOff,
-} from "react-icons/fi";
+import { useNavigate, useLocation, Link } from "react-router-dom";
+import { FiUser, FiMail, FiLock, FiEye, FiEyeOff } from "react-icons/fi";
 import { MdPersonAdd } from "react-icons/md";
 import Button from "../components/Button";
 import logo from "/src/assets/logo.png";
 import { supabase } from "../services/supabase";
+import {
+    saveRedirect,
+    peekRedirect,
+    consumeRedirect,
+} from "../utils/borrowRedirect";
+
+const inputBase =
+    "w-full pl-10 py-2 bg-white border border-slate-200 rounded-md focus:border-primary focus:ring-1 focus:ring-primary outline-none text-sm transition-colors text-slate-800 placeholder:text-slate-400";
 
 const SignUp = () => {
     const [showPassword, setShowPassword] = useState(false);
-    const [showConfirmPassword, setShowConfirmPassword] =
-        useState(false);
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
     const [signUpError, setSignUpError] = useState("");
     const [successMessage, setSuccessMessage] = useState("");
 
     const navigate = useNavigate();
     const location = useLocation();
 
+    // Where the user wanted to go (e.g. /borrow-confirm/OL123W)
     const from = location.state?.from;
-
-    const storedRedirect =
-        sessionStorage.getItem("borrowRedirect");
-
     const redirectTarget =
-        typeof from === "string"
-            ? from
-            : from?.pathname || storedRedirect || null;
+        (typeof from === "string" ? from : from?.pathname) ||
+        peekRedirect();
 
     const formik = useFormik({
         initialValues: {
@@ -49,10 +42,7 @@ const SignUp = () => {
 
         validationSchema: Yup.object({
             fullName: Yup.string()
-                .min(
-                    2,
-                    "Name must be at least 2 characters"
-                )
+                .min(2, "Name must be at least 2 characters")
                 .required("Full name is required"),
 
             email: Yup.string()
@@ -60,17 +50,11 @@ const SignUp = () => {
                 .required("Email address is required"),
 
             password: Yup.string()
-                .min(
-                    6,
-                    "Password must be at least 6 characters"
-                )
+                .min(6, "Password must be at least 6 characters")
                 .required("Password is required"),
 
             confirmPassword: Yup.string()
-                .oneOf(
-                    [Yup.ref("password"), null],
-                    "Passwords must match"
-                )
+                .oneOf([Yup.ref("password"), null], "Passwords must match")
                 .required("Please confirm your password"),
 
             agreeTerms: Yup.boolean().oneOf(
@@ -79,65 +63,63 @@ const SignUp = () => {
             ),
         }),
 
-        onSubmit: async (
-            values,
-            { setSubmitting }
-        ) => {
+        onSubmit: async (values, { setSubmitting }) => {
             setSignUpError("");
             setSuccessMessage("");
 
             try {
-                /*
-                 * Save the destination before leaving SignUp.
-                 *
-                 * Example:
-                 * /borrow-confirm/OL12345W
-                 */
-                if (redirectTarget) {
-                    sessionStorage.setItem(
-                        "borrowRedirect",
-                        redirectTarget
+                // localStorage (not sessionStorage) so it survives the
+                // confirmation link opening in a new tab.
+                saveRedirect(redirectTarget);
+
+                const { data, error } = await supabase.auth.signUp({
+                    email: values.email,
+                    password: values.password,
+                    options: {
+                        data: {
+                            full_name: values.fullName,
+                            role: "user",
+                        },
+                        emailRedirectTo: `${window.location.origin}/confirm-email`,
+                    },
+                });
+
+                if (error) throw error;
+
+                // Supabase returns a fake user with no identities
+                // when the email is already registered.
+                if (data.user && data.user.identities?.length === 0) {
+                    setSignUpError(
+                        "An account with this email already exists. Please sign in."
                     );
+                    return;
                 }
 
-                const { data, error } =
-                    await supabase.auth.signUp({
-                        email: values.email,
-                        password: values.password,
-
-                        options: {
-                            data: {
-                                full_name: values.fullName,
-                                role: "user",
-                            },
-
-                            emailRedirectTo: `${window.location.origin}/confirm-email`,
-                        },
+                // Email confirmation is disabled in Supabase:
+                // the user is already logged in.
+                if (data.session) {
+                    navigate(consumeRedirect() || "/user/dashboard", {
+                        replace: true,
                     });
-
-                if (error) {
-                    throw error;
+                    return;
                 }
 
                 setSuccessMessage(
-                    "Account created successfully! Please check your email to confirm your account."
+                    "Account created! Check your email to confirm your account."
                 );
 
                 setTimeout(() => {
                     navigate("/confirm-email", {
-                        state: {
-                            from: redirectTarget,
-                            registeredEmail:
-                                values.email,
-                        },
+                        replace: true,
+                        state: { registeredEmail: values.email },
                     });
-                }, 1500);
+                }, 1200);
             } catch (err) {
                 console.error("Sign up error:", err);
 
                 setSignUpError(
                     err.message ||
-                    "Failed to create account. Please try again."
+                        "Failed to create account. Please try again."
                 );
             } finally {
                 setSubmitting(false);
@@ -148,7 +130,6 @@ const SignUp = () => {
     return (
         <div className="min-h-screen bg-[#F9F9FF] text-slate-800 antialiased flex items-center justify-center p-4 font-sora">
             <div className="w-full mx-auto bg-white border border-slate-200 rounded-xl p-6 sm:p-8 shadow-sm">
-
                 {/* Logo & Header */}
                 <div className="flex flex-col items-center mb-6 text-center">
                     <img
@@ -184,7 +165,6 @@ const SignUp = () => {
                     onSubmit={formik.handleSubmit}
                     className="flex flex-col gap-3.5"
                 >
-
                     {/* Full Name */}
                     <div>
                         <label
@@ -207,16 +187,15 @@ const SignUp = () => {
                                 onChange={formik.handleChange}
                                 onBlur={formik.handleBlur}
                                 value={formik.values.fullName}
-                                className="w-full pl-10 pr-3 py-2 bg-white border border-slate-200 rounded-md focus:border-primary focus:ring-1 focus:ring-primary outline-none text-sm transition-colors text-slate-800 placeholder:text-slate-400"
+                                className={`${inputBase} pr-3`}
                             />
                         </div>
 
-                        {formik.touched.fullName &&
-                            formik.errors.fullName && (
-                                <p className="text-red-500 text-[11px] font-medium mt-1">
-                                    {formik.errors.fullName}
-                                </p>
-                            )}
+                        {formik.touched.fullName && formik.errors.fullName && (
+                            <p className="text-red-500 text-[11px] font-medium mt-1">
+                                {formik.errors.fullName}
+                            </p>
+                        )}
                     </div>
 
                     {/* Email */}
@@ -241,16 +220,15 @@ const SignUp = () => {
                                 onChange={formik.handleChange}
                                 onBlur={formik.handleBlur}
                                 value={formik.values.email}
-                                className="w-full pl-10 pr-3 py-2 bg-white border border-slate-200 rounded-md focus:border-primary focus:ring-1 focus:ring-primary outline-none text-sm transition-colors text-slate-800 placeholder:text-slate-400"
+                                className={`${inputBase} pr-3`}
                             />
                         </div>
 
-                        {formik.touched.email &&
-                            formik.errors.email && (
-                                <p className="text-red-500 text-[11px] font-medium mt-1">
-                                    {formik.errors.email}
-                                </p>
-                            )}
+                        {formik.touched.email && formik.errors.email && (
+                            <p className="text-red-500 text-[11px] font-medium mt-1">
+                                {formik.errors.email}
+                            </p>
+                        )}
                     </div>
 
                     {/* Password */}
@@ -270,25 +248,17 @@ const SignUp = () => {
                             <input
                                 id="password"
                                 name="password"
-                                type={
-                                    showPassword
-                                        ? "text"
-                                        : "password"
-                                }
+                                type={showPassword ? "text" : "password"}
                                 placeholder="Create a password"
                                 onChange={formik.handleChange}
                                 onBlur={formik.handleBlur}
                                 value={formik.values.password}
-                                className="w-full pl-10 pr-10 py-2 bg-white border border-slate-200 rounded-md focus:border-primary focus:ring-1 focus:ring-primary outline-none text-sm transition-colors text-slate-800 placeholder:text-slate-400"
+                                className={`${inputBase} pr-10`}
                             />
 
                             <button
                                 type="button"
-                                onClick={() =>
-                                    setShowPassword(
-                                        !showPassword
-                                    )
-                                }
+                                onClick={() => setShowPassword(!showPassword)}
                                 className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
                                 aria-label={
                                     showPassword
@@ -304,12 +274,11 @@ const SignUp = () => {
                             </button>
                         </div>
 
-                        {formik.touched.password &&
-                            formik.errors.password && (
-                                <p className="text-red-500 text-[11px] font-medium mt-1">
-                                    {formik.errors.password}
-                                </p>
-                            )}
+                        {formik.touched.password && formik.errors.password && (
+                            <p className="text-red-500 text-[11px] font-medium mt-1">
+                                {formik.errors.password}
+                            </p>
+                        )}
                     </div>
 
                     {/* Confirm Password */}
@@ -329,26 +298,18 @@ const SignUp = () => {
                             <input
                                 id="confirmPassword"
                                 name="confirmPassword"
-                                type={
-                                    showConfirmPassword
-                                        ? "text"
-                                        : "password"
-                                }
+                                type={showConfirmPassword ? "text" : "password"}
                                 placeholder="Repeat your password"
                                 onChange={formik.handleChange}
                                 onBlur={formik.handleBlur}
-                                value={
-                                    formik.values.confirmPassword
-                                }
-                                className="w-full pl-10 pr-10 py-2 bg-white border border-slate-200 rounded-md focus:border-primary focus:ring-1 focus:ring-primary outline-none text-sm transition-colors text-slate-800 placeholder:text-slate-400"
+                                value={formik.values.confirmPassword}
+                                className={`${inputBase} pr-10`}
                             />
 
                             <button
                                 type="button"
                                 onClick={() =>
-                                    setShowConfirmPassword(
-                                        !showConfirmPassword
-                                    )
+                                    setShowConfirmPassword(!showConfirmPassword)
                                 }
                                 className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
                                 aria-label={
@@ -379,9 +340,7 @@ const SignUp = () => {
                             <input
                                 type="checkbox"
                                 name="agreeTerms"
-                                checked={
-                                    formik.values.agreeTerms
-                                }
+                                checked={formik.values.agreeTerms}
                                 onChange={formik.handleChange}
                                 className="mt-0.5 rounded border-slate-300 text-primary focus:ring-primary"
                             />
@@ -422,12 +381,9 @@ const SignUp = () => {
                 <div className="mt-5 text-center pt-4 border-t border-slate-100">
                     <p className="text-xs text-slate-500 font-medium">
                         Already have an account?{" "}
-
                         <Link
                             to="/signin"
-                            state={{
-                                from: redirectTarget,
-                            }}
+                            state={{ from: redirectTarget }}
                             className="text-primary hover:underline font-semibold ml-1"
                         >
                             Sign In

@@ -1,4 +1,3 @@
-
 import * as Yup from "yup";
 import Button from "../components/Button";
 import { FaArrowRight } from "react-icons/fa";
@@ -8,6 +7,7 @@ import logo from "/src/assets/logo.png";
 import { useState, useContext } from "react";
 import { FiEye, FiEyeOff } from "react-icons/fi";
 import { AuthContext } from "../context/myContext";
+import { peekRedirect, consumeRedirect } from "../utils/borrowRedirect";
 
 const SignIn = () => {
     const [showPassword, setShowPassword] = useState(false);
@@ -19,23 +19,16 @@ const SignIn = () => {
     const location = useLocation();
 
     /*
-     * First check React Router state.
-     * This is used when the user came directly from BookDetails.
+     * 1. React Router state: set when the user came from BookDetails
+     *    or was bounced here by ProtectedRoute.
+     * 2. Stored redirect (localStorage): survives the email
+     *    confirmation flow, where router state is lost.
      */
     const from = location.state?.from;
 
-    /*
-     * If the user went through email verification,
-     * React Router state may be gone.
-     *
-     * sessionStorage survives that navigation.
-     */
-    const storedRedirect = sessionStorage.getItem("borrowRedirect");
-
     const redirectTarget =
-        typeof from === "string"
-            ? from
-            : from?.pathname || storedRedirect || null;
+        (typeof from === "string" ? from : from?.pathname) ||
+        peekRedirect();
 
     const formik = useFormik({
         initialValues: {
@@ -49,10 +42,7 @@ const SignIn = () => {
                 .email("Email must be in valid email format"),
 
             password: Yup.string()
-                .min(
-                    6,
-                    "Password must be minimum of 6 characters"
-                )
+                .min(6, "Password must be minimum of 6 characters")
                 .required("Password is required"),
         }),
 
@@ -61,62 +51,39 @@ const SignIn = () => {
                 setSignInError("");
                 setSuccessMessage("");
 
-                const result = await login(
-                    values.email,
-                    values.password
-                );
+                const result = await login(values.email, values.password);
 
                 if (result && result.success) {
-                    setSuccessMessage(
-                        "Signed in successfully! Redirecting..."
-                    );
+                    setSuccessMessage("Signed in successfully! Redirecting...");
 
                     setTimeout(() => {
-                        /*
-                         * If the user originally wanted to borrow
-                         * a book, continue that flow.
-                         */
+                        // Always clear any saved redirect once login succeeds,
+                        // so it can't leak into a later session.
+                        consumeRedirect();
+
+                        // Continue the original flow (e.g. borrowing a book)
                         if (redirectTarget) {
-                            /*
-                             * We have successfully consumed the
-                             * saved borrow destination.
-                             */
-                            sessionStorage.removeItem(
-                                "borrowRedirect"
-                            );
-
-                            navigate(redirectTarget, {
-                                replace: true,
-                            });
-
+                            navigate(redirectTarget, { replace: true });
                             return;
                         }
 
-                        /*
-                         * Normal login destination.
-                         */
-                        if (result.role === "admin") {
-                            navigate("/admin/dashboard", {
-                                replace: true,
-                            });
-                        } else {
-                            navigate("/user/dashboard", {
-                                replace: true,
-                            });
-                        }
+                        // Normal login destination
+                        navigate(
+                            result.role === "admin"
+                                ? "/admin/dashboard"
+                                : "/user/dashboard",
+                            { replace: true }
+                        );
                     }, 800);
                 } else {
                     setSignInError(
-                        result?.message ||
-                        "Invalid Email or Password"
+                        result?.message || "Invalid Email or Password"
                     );
                 }
             } catch (error) {
                 console.error("Sign in error:", error);
 
-                setSignInError(
-                    "Unable to sign in. Please try again."
-                );
+                setSignInError("Unable to sign in. Please try again.");
             } finally {
                 setSubmitting(false);
             }
@@ -126,7 +93,6 @@ const SignIn = () => {
     return (
         <div className="flex min-h-screen bg-gray-50 justify-center font-sora">
             <div className="border border-outline-variant flex flex-col rounded-lg gap-6 bg-white px-4 py-8 w-full">
-
                 <div className="flex justify-center flex-col items-center">
                     <div className="logo">
                         <img
@@ -180,12 +146,11 @@ const SignIn = () => {
                             className="outline-0 border border-outline-variant p-2 rounded-sm text-sm"
                         />
 
-                        {formik.touched.email &&
-                            formik.errors.email && (
-                                <p className="text-error text-sm mt-1">
-                                    {formik.errors.email}
-                                </p>
-                            )}
+                        {formik.touched.email && formik.errors.email && (
+                            <p className="text-error text-sm mt-1">
+                                {formik.errors.email}
+                            </p>
+                        )}
                     </div>
 
                     <div className="relative">
@@ -203,11 +168,7 @@ const SignIn = () => {
                         </div>
 
                         <input
-                            type={
-                                showPassword
-                                    ? "text"
-                                    : "password"
-                            }
+                            type={showPassword ? "text" : "password"}
                             id="password"
                             name="password"
                             onChange={formik.handleChange}
@@ -217,23 +178,18 @@ const SignIn = () => {
                             className="rounded-sm outline-0 border text-sm border-outline-variant w-full p-2 pr-10"
                         />
 
-                        {formik.touched.password &&
-                            formik.errors.password && (
-                                <p className="text-error text-sm mt-1">
-                                    {formik.errors.password}
-                                </p>
-                            )}
+                        {formik.touched.password && formik.errors.password && (
+                            <p className="text-error text-sm mt-1">
+                                {formik.errors.password}
+                            </p>
+                        )}
 
                         <button
-                            onClick={() =>
-                                setShowPassword(!showPassword)
-                            }
+                            onClick={() => setShowPassword(!showPassword)}
                             type="button"
                             className="absolute top-8 right-3 text-slate-400 hover:text-slate-600"
                             aria-label={
-                                showPassword
-                                    ? "Hide password"
-                                    : "Show Password"
+                                showPassword ? "Hide password" : "Show password"
                             }
                         >
                             {showPassword ? (
@@ -257,14 +213,11 @@ const SignIn = () => {
                 <div className="text-center">
                     <p className="text-label-sm mt-2">
                         Don't have an account?
-
                         <button
                             type="button"
                             onClick={() =>
                                 navigate("/signup", {
-                                    state: {
-                                        from: redirectTarget,
-                                    },
+                                    state: { from: redirectTarget },
                                 })
                             }
                             className="text-primary-container font-semibold ml-1"

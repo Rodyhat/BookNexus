@@ -46,7 +46,7 @@ const App = () => {
         <Route element={<ProtectedRoute />}>
           {/* Borrowing */}
           <Route path="/borrow-confirm/:bookId" element={<BorrowConfirm />} />
-          <Route path="/borrow-success" element={<BorrowingSuccess />} />
+          <Route path="/borrow-success" element={<BorrowingSuccess />} /> 
 
           {/* Admin */}
           <Route path="/admin" element={<AdminLayout />}>
