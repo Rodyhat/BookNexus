@@ -12,7 +12,7 @@ const BorrowingSuccess = ({ referenceId = "#BNX-4829-TL" }) => {
   const navigate = useNavigate();
 
   return (
-    <div className="min-h-screen bg-[#F9F9FF] font-sora flex items-center justify-center p-6">
+    <div className=" bg-[#F9F9FF] font-sora flex items-center justify-center p-6">
       <div className="max-w-md w-full bg-white rounded-2xl border border-indigo-50 shadow-xl p-8 text-center">
         <div className="w-20 h-20 bg-green-50 rounded-full flex items-center justify-center text-green-500 mx-auto mb-6">
           <MdCheckCircle size={48} />
@@ -26,15 +26,15 @@ const BorrowingSuccess = ({ referenceId = "#BNX-4829-TL" }) => {
         </p>
 
         <div className="space-y-3">
-          <Button 
-            variant="primary" 
+          <Button
+            variant="primary"
             className="w-full shadow-lg shadow-indigo-100"
             onClick={() => navigate('/user/dashboard')}
           >
             <MdDashboard className="mr-2" /> Back to Dashboard
           </Button>
-          <Button 
-            variant="secondary" 
+          <Button
+            variant="secondary"
             className="w-full"
             onClick={() => navigate('/catalog')}
           >

@@ -1,9 +1,10 @@
-import React, { useContext, useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import DetailsNavbar from "../components/DetailsNavbar";
 import { BookContext, AuthContext } from "../context/myContext";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { FaArrowLeft, FaBook } from "react-icons/fa";
 import Button from "../components/Button";
+import { saveRedirect } from "../utils/borrowRedirect";
 
 const BookDetails = () => {
     const { fetchBookDetails } = useContext(BookContext);
@@ -36,6 +37,10 @@ const BookDetails = () => {
         const borrowDestination = `/borrow-confirm/${bookId}`;
 
         if (!isAuthenticated) {
+            // Save the borrow destination so it survives
+            // Sign In → Sign Up → Email Confirmation.
+            saveRedirect(borrowDestination);
+
             navigate("/signin", {
                 state: {
                     from: borrowDestination,

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate, useLocation, Link } from "react-router-dom";
 import { supabase } from "../services/supabase";
 import { FaCheckCircle, FaSpinner, FaEnvelope } from "react-icons/fa";
@@ -33,7 +33,13 @@ const ConfirmEmail = () => {
             setStatus("confirmed");
 
             timer = setTimeout(() => {
-                navigate(consumeRedirect() || "/user/dashboard", { replace: true });
+                const redirectTarget = consumeRedirect();
+
+                console.log("Borrow redirect:", redirectTarget);
+
+                navigate(redirectTarget || "/user/dashboard", {
+                    replace: true,
+                });
             }, 1200);
         };
 
@@ -70,7 +76,7 @@ const ConfirmEmail = () => {
     const v = views[status];
 
     return (
-        <div className="min-h-screen bg-[#F9F9FF] flex items-center justify-center px-4 font-sora">
+        <div className="bg-[#F9F9FF] flex items-center justify-center px-4 font-sora">
             <div className="bg-white rounded-2xl shadow-sm border border-indigo-50 p-8 w-full max-w-md text-center">
                 <div className="flex justify-center mb-5">{v.icon}</div>
                 <h1 className="text-2xl font-bold text-gray-900 mb-3">{v.title}</h1>

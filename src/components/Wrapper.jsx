@@ -266,7 +266,8 @@ const Wrapper = ({ children }) => {
                     publisher: updatedBook.publisher || null,
                     total_copies: Number(updatedBook.totalCopies),
                     available_copies: Number(updatedBook.totalCopies),
-                    cover_url: updatedBook.bookImage || null
+                    cover_url: updatedBook.bookImage || null,
+                    ebook_path: updatedBook.ebookPath || null
                 })
                 .eq('id', updatedBook.id)
                 .select()

@@ -17,7 +17,8 @@ const initialBookForm = {
     totalCopies: 1,
     language: 'English',
     description: '',
-    bookImage: ''
+    bookImage: '',
+    ebookPath: ''
 };
 
 // Form Reducer
@@ -45,6 +46,7 @@ const AddEditBook = ({ onClose }) => {
     const [booksForm, dispatchBookForm] = useReducer(bookFormReducer, initialBookForm);
     const [isLoading, setIsLoading] = useState(false);
     const [selectedFile, setSelectedFile] = useState(null);
+    const [selectedEbook, setSelectedEbook] = useState(null);
     const [previewUrl, setPreviewUrl] = useState('');
     const [isDragging, setIsDragging] = useState(false);
     // Populate form when editing or reset when adding
@@ -64,6 +66,7 @@ const AddEditBook = ({ onClose }) => {
                     language: bookToEdit.language || 'English',
                     description: bookToEdit.description || '',
                     bookImage: bookToEdit.cover_url || '',
+                    ebookPath: bookToEdit.ebook_path || '',
                 }
             });
             setPreviewUrl(bookToEdit.cover_url || '');

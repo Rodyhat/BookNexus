@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { useFormik } from "formik";
 import * as Yup from "yup";
 import { useNavigate, useLocation, Link } from "react-router-dom";
@@ -119,7 +119,7 @@ const SignUp = () => {
 
                 setSignUpError(
                     err.message ||
-                        "Failed to create account. Please try again."
+                    "Failed to create account. Please try again."
                 );
             } finally {
                 setSubmitting(false);

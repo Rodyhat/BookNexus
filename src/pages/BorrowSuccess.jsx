@@ -18,7 +18,7 @@ const BorrowingSuccess = () => {
   const referenceId = location.state?.referenceId || "#BNX-4829-TL";
 
   return (
-    <div className="min-h-screen bg-[#F9F9FF] font-sora flex items-center justify-center p-6">
+    <div className=" bg-[#F9F9FF] font-sora flex items-center justify-center p-6">
       <div className=" w-full bg-white rounded-3xl border border-indigo-50 shadow-xl p-8 md:p-12 text-center relative overflow-hidden">
 
         {/* Success Icon Animation Placeholder */}

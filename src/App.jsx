@@ -26,29 +26,27 @@ import ConfirmEmail from "./pages/ConfirmEmail";
 const App = () => {
   return (
     <Wrapper className="page-content">
-      <Toaster
-        position="top-right"
-        toastOptions={{ duration: 3000 }}
-      />
+      <Toaster position="top-right" toastOptions={{ duration: 3000 }} />
 
       <Routes>
-        {/*  PUBLIC PAGES  */}
+        {/* PUBLIC PAGES */}
         <Route path="/" element={<LandingPage />} />
         <Route path="/signin" element={<SignIn />} />
         <Route path="/signup" element={<SignUp />} />
         <Route path="/trendinglist" element={<TrendList />} />
 
-        {/* Guest can view book details */}
+        {/* Guests can view book details */}
         <Route path="/bookdetails/:bookId" element={<BookDetails />} />
         <Route path="/confirm-email" element={<ConfirmEmail />} />
 
-        {/* PROTECTED PAGES  */}
+        {/* PROTECTED: any logged-in user (borrowing flow) */}
         <Route element={<ProtectedRoute />}>
-          {/* Borrowing */}
           <Route path="/borrow-confirm/:bookId" element={<BorrowConfirm />} />
-          <Route path="/borrow-success" element={<BorrowingSuccess />} /> 
+          <Route path="/borrow-success" element={<BorrowingSuccess />} />
+        </Route>
 
-          {/* Admin */}
+        {/* PROTECTED: admin only */}
+        <Route element={<ProtectedRoute requiredRole="admin" />}>
           <Route path="/admin" element={<AdminLayout />}>
             <Route path="dashboard" element={<AdminDashboard />} />
             <Route path="books" element={<AdminBooks />} />
@@ -56,9 +54,10 @@ const App = () => {
             <Route path="borrowers" element={<AdminBorrowers />} />
             <Route path="add_edit_books" element={<AddEditBook />} />
           </Route>
+        </Route>
 
-
-          {/* User */}
+        {/* PROTECTED: regular users only */}
+        <Route element={<ProtectedRoute requiredRole="user" />}>
           <Route path="/user" element={<UserLayout />}>
             <Route path="dashboard" element={<UserDashboard />} />
             <Route path="mybooks" element={<UserBooks />} />

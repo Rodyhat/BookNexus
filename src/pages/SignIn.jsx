@@ -57,17 +57,16 @@ const SignIn = () => {
                     setSuccessMessage("Signed in successfully! Redirecting...");
 
                     setTimeout(() => {
-                        // Always clear any saved redirect once login succeeds,
-                        // so it can't leak into a later session.
-                        consumeRedirect();
-
-                        // Continue the original flow (e.g. borrowing a book)
                         if (redirectTarget) {
-                            navigate(redirectTarget, { replace: true });
+                            consumeRedirect();
+
+                            navigate(redirectTarget, {
+                                replace: true,
+                            });
+
                             return;
                         }
 
-                        // Normal login destination
                         navigate(
                             result.role === "admin"
                                 ? "/admin/dashboard"
