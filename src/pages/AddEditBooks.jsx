@@ -175,6 +175,13 @@ const AddEditBook = ({ onClose }) => {
 
         const { error } = await supabase.storage
             .from('book-files')
+        const {
+            data: { user },
+            error: userError
+        } = await supabase.auth.getUser();
+
+        console.log("Storage upload user:", user?.id)
+        console.log("Storage upload user error:", userError)
             .upload(filePath, selectedEbook, {
                 contentType: 'application/pdf',
                 upsert: false

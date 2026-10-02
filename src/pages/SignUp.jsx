@@ -25,8 +25,10 @@ const SignUp = () => {
     const navigate = useNavigate();
     const location = useLocation();
 
-    // Where the user wanted to go (e.g. /borrow-confirm/OL123W)
+    // Where the user wanted to go
+    // Example: /borrow-confirm/OL123W
     const from = location.state?.from;
+
     const redirectTarget =
         (typeof from === "string" ? from : from?.pathname) ||
         peekRedirect();
@@ -68,25 +70,28 @@ const SignUp = () => {
             setSuccessMessage("");
 
             try {
-                // localStorage (not sessionStorage) so it survives the
-                // confirmation link opening in a new tab.
+                // Save the page the user originally wanted to visit.
+                // This is important for the borrow flow.
                 saveRedirect(redirectTarget);
 
                 const { data, error } = await supabase.auth.signUp({
                     email: values.email,
                     password: values.password,
+
                     options: {
                         data: {
                             full_name: values.fullName,
-                            role: "user",
                         },
+
                         emailRedirectTo: `${window.location.origin}/confirm-email`,
                     },
                 });
 
-                if (error) throw error;
+                if (error) {
+                    throw error;
+                }
 
-                // Supabase returns a fake user with no identities
+                // Supabase may return a user with no identities
                 // when the email is already registered.
                 if (data.user && data.user.identities?.length === 0) {
                     setSignUpError(
@@ -95,15 +100,21 @@ const SignUp = () => {
                     return;
                 }
 
-                // Email confirmation is disabled in Supabase:
-                // the user is already logged in.
+                // If email confirmation is disabled,
+                // Supabase returns an active session immediately.
                 if (data.session) {
-                    navigate(consumeRedirect() || "/user/dashboard", {
-                        replace: true,
-                    });
+                    navigate(
+                        consumeRedirect() || "/user/dashboard",
+                        {
+                            replace: true,
+                        }
+                    );
+
                     return;
                 }
 
+                // If email confirmation is enabled,
+                // send the user to the confirmation page.
                 setSuccessMessage(
                     "Account created! Check your email to confirm your account."
                 );
@@ -111,7 +122,9 @@ const SignUp = () => {
                 setTimeout(() => {
                     navigate("/confirm-email", {
                         replace: true,
-                        state: { registeredEmail: values.email },
+                        state: {
+                            registeredEmail: values.email,
+                        },
                     });
                 }, 1200);
             } catch (err) {
@@ -130,6 +143,7 @@ const SignUp = () => {
     return (
         <div className="min-h-screen bg-[#F9F9FF] text-slate-800 antialiased flex items-center justify-center p-4 font-sora">
             <div className="w-full mx-auto bg-white border border-slate-200 rounded-xl p-6 sm:p-8 shadow-sm">
+
                 {/* Logo & Header */}
                 <div className="flex flex-col items-center mb-6 text-center">
                     <img
@@ -191,11 +205,12 @@ const SignUp = () => {
                             />
                         </div>
 
-                        {formik.touched.fullName && formik.errors.fullName && (
-                            <p className="text-red-500 text-[11px] font-medium mt-1">
-                                {formik.errors.fullName}
-                            </p>
-                        )}
+                        {formik.touched.fullName &&
+                            formik.errors.fullName && (
+                                <p className="text-red-500 text-[11px] font-medium mt-1">
+                                    {formik.errors.fullName}
+                                </p>
+                            )}
                     </div>
 
                     {/* Email */}
@@ -224,11 +239,12 @@ const SignUp = () => {
                             />
                         </div>
 
-                        {formik.touched.email && formik.errors.email && (
-                            <p className="text-red-500 text-[11px] font-medium mt-1">
-                                {formik.errors.email}
-                            </p>
-                        )}
+                        {formik.touched.email &&
+                            formik.errors.email && (
+                                <p className="text-red-500 text-[11px] font-medium mt-1">
+                                    {formik.errors.email}
+                                </p>
+                            )}
                     </div>
 
                     {/* Password */}
@@ -258,7 +274,9 @@ const SignUp = () => {
 
                             <button
                                 type="button"
-                                onClick={() => setShowPassword(!showPassword)}
+                                onClick={() =>
+                                    setShowPassword(!showPassword)
+                                }
                                 className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
                                 aria-label={
                                     showPassword
@@ -274,11 +292,12 @@ const SignUp = () => {
                             </button>
                         </div>
 
-                        {formik.touched.password && formik.errors.password && (
-                            <p className="text-red-500 text-[11px] font-medium mt-1">
-                                {formik.errors.password}
-                            </p>
-                        )}
+                        {formik.touched.password &&
+                            formik.errors.password && (
+                                <p className="text-red-500 text-[11px] font-medium mt-1">
+                                    {formik.errors.password}
+                                </p>
+                            )}
                     </div>
 
                     {/* Confirm Password */}
@@ -298,7 +317,11 @@ const SignUp = () => {
                             <input
                                 id="confirmPassword"
                                 name="confirmPassword"
-                                type={showConfirmPassword ? "text" : "password"}
+                                type={
+                                    showConfirmPassword
+                                        ? "text"
+                                        : "password"
+                                }
                                 placeholder="Repeat your password"
                                 onChange={formik.handleChange}
                                 onBlur={formik.handleBlur}
@@ -309,7 +332,9 @@ const SignUp = () => {
                             <button
                                 type="button"
                                 onClick={() =>
-                                    setShowConfirmPassword(!showConfirmPassword)
+                                    setShowConfirmPassword(
+                                        !showConfirmPassword
+                                    )
                                 }
                                 className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
                                 aria-label={

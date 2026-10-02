@@ -37,7 +37,29 @@ const Wrapper = ({ children }) => {
     const [role, setRole] = useState(null);
     const [isAuthenticated, setIsAuthenticated] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
+    const getUserRole = async (userId) => {
+        try {
+            const { data, error } = await supabase
+                .from("profiles")
+                .select("role")
+                .eq("id", userId)
+                .maybeSingle();
 
+            if (error) {
+                console.error("Error fetching user role:", error);
+                return null;
+            }
+
+            console.log("User profile:", data);
+            console.log("User role:", data?.role);
+
+            return data?.role || null;
+
+        } catch (error) {
+            console.error("Error getting user role:", error);
+            return null;
+        }
+    };
     // --- Supabase Authentication ---
     useEffect(() => {
         const getInitialSession = async () => {
@@ -54,7 +76,9 @@ const Wrapper = ({ children }) => {
 
                 setUser(currentUser);
                 setIsAuthenticated(true);
-                setRole(currentUser.user_metadata?.role || "user");
+
+                const userRole = await getUserRole(currentUser.id);
+                setRole(userRole);
             }
 
             setIsLoading(false);
@@ -64,11 +88,15 @@ const Wrapper = ({ children }) => {
 
         const {
             data: { subscription },
-        } = supabase.auth.onAuthStateChange((_event, session) => {
+        } = supabase.auth.onAuthStateChange(async (_event, session) => {
             if (session?.user) {
-                setUser(session.user);
+                const currentUser = session.user;
+
+                setUser(currentUser);
                 setIsAuthenticated(true);
-                setRole(session.user.user_metadata?.role || "user");
+
+                const userRole = await getUserRole(currentUser.id);
+                setRole(userRole);
             } else {
                 setUser(null);
                 setIsAuthenticated(false);
@@ -99,11 +127,17 @@ const Wrapper = ({ children }) => {
 
         setUser(loggedInUser);
         setIsAuthenticated(true);
-        setRole(loggedInUser.user_metadata?.role || "user");
+
+        const userRole = await getUserRole(loggedInUser.id);
+
+        console.log("Logged-in user:", loggedInUser.id);
+        console.log("Role returned from profiles:", userRole);
+
+        setRole(userRole);
 
         return {
             success: true,
-            role: loggedInUser.user_metadata?.role || "user",
+            role: userRole,
         };
     };
 
