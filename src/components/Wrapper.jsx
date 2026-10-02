@@ -231,7 +231,8 @@ const Wrapper = ({ children }) => {
                         description: newBook.description || null,
                         total_copies: Number(newBook.totalCopies),
                         available_copies: Number(newBook.totalCopies),
-                        cover_url: newBook.bookImage || null
+                        cover_url: newBook.bookImage || null,
+                        ebook_path: newBook.ebookPath || null,
                     }
                 ])
                 .select()

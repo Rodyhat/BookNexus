@@ -12,7 +12,7 @@ const BorrowingSuccess = ({ referenceId = "#BNX-4829-TL" }) => {
   const navigate = useNavigate();
 
   return (
-    <div className=" bg-[#F9F9FF] font-sora flex items-center justify-center p-6">
+    <div className="bg-[#F9F9FF] font-sora flex items-center justify-center p-6">
       <div className="max-w-md w-full bg-white rounded-2xl border border-indigo-50 shadow-xl p-8 text-center">
         <div className="w-20 h-20 bg-green-50 rounded-full flex items-center justify-center text-green-500 mx-auto mb-6">
           <MdCheckCircle size={48} />

@@ -164,6 +164,30 @@ const AddEditBook = ({ onClose }) => {
         return data.publicUrl;
     };
 
+    const uploadEbook = async () => {
+        // Keep the existing ebook when editing without replacing it.
+        if (!selectedEbook) {
+            return booksForm.ebookPath || null;
+        }
+
+        const fileName = `${Date.now()}.pdf`;
+        const filePath = `books/${fileName}`;
+
+        const { error } = await supabase.storage
+            .from('book-files')
+            .upload(filePath, selectedEbook, {
+                contentType: 'application/pdf',
+                upsert: false
+            });
+
+        if (error) {
+            throw error;
+        }
+
+        // Save the storage path, not a public URL.
+        return filePath;
+    };
+
     // Submit Form
     const handleFormSubmit = async (e) => {
         e.preventDefault();
@@ -171,16 +195,20 @@ const AddEditBook = ({ onClose }) => {
 
         try {
             const bookImage = await uploadBookCover();
+            const ebookPath = await uploadEbook();
 
             const bookData = {
                 ...booksForm,
-                bookImage
+                bookImage,
+                ebookPath
             };
 
             if (isEditMode) {
                 await updateBook(bookData);
+                toast.success('Book updated successfully!');
             } else {
                 await addBook(bookData);
+                toast.success('Book added successfully!');
             }
 
             navigate('/admin/books');
@@ -190,6 +218,7 @@ const AddEditBook = ({ onClose }) => {
             }
         } catch (error) {
             console.error('Failed to save book:', error);
+            toast.error(error.message || 'Failed to save book.');
         } finally {
             setIsLoading(false);
         }
@@ -395,6 +424,60 @@ const AddEditBook = ({ onClose }) => {
                                     }}
                                 />
                             </label>
+                        </div>
+                        <div>
+                            <label className={labelClasses}>
+                                Ebook / PDF File
+                            </label>
+
+                            <label
+                                htmlFor="ebook-file"
+                                className="border-2 border-dashed rounded-xl p-6 flex flex-col items-center justify-center cursor-pointer border-slate-200 bg-slate-50/50 hover:bg-slate-50"
+                            >
+                                <MdCloudUpload size={28} className="text-slate-400 mb-2" />
+
+                                <p className="text-sm font-bold text-center text-slate-700">
+                                    {selectedEbook
+                                        ? selectedEbook.name
+                                        : 'Click to upload ebook'}
+                                </p>
+
+                                <p className="text-xs text-slate-400 mt-1">
+                                    PDF only · Maximum 20 MB
+                                </p>
+                                <input
+                                    id="ebook-file"
+                                    type="file"
+                                    accept=".pdf,application/pdf"
+                                    className="hidden"
+                                    onChange={(e) => {
+                                        const file = e.target.files?.[0];
+                                        if (!file) return;
+                                        if (
+                                            file.type !== 'application/pdf' &&
+                                            !file.name.toLowerCase().endsWith('.pdf')
+                                        ) {
+                                            toast.error('Please select a PDF file.');
+                                            e.target.value = '';
+                                            return;
+                                        }
+
+                                        if (file.size > 20 * 1024 * 1024) {
+                                            toast.error('PDF must be no larger than 20 MB.');
+                                            e.target.value = '';
+                                            return;
+                                        }
+
+                                        setSelectedEbook(file);
+                                    }}
+                                />
+                            </label>
+
+                            {booksForm.ebookPath && !selectedEbook && (
+                                <p className="text-xs text-green-600 mt-2">
+                                    An ebook is already uploaded for this book.
+                                </p>
+                            )}
                         </div>
                     </div>
 
