@@ -5,6 +5,7 @@ import { useParams, Link, useNavigate } from "react-router-dom";
 import { FaArrowLeft, FaBook } from "react-icons/fa";
 import Button from "../components/Button";
 import { saveRedirect } from "../utils/borrowRedirect";
+import { supabase } from "../services/supabase";
 
 const BookDetails = () => {
     const { fetchBookDetails } = useContext(BookContext);
@@ -21,11 +22,24 @@ const BookDetails = () => {
             try {
                 setLoading(true);
                 setError("");
-                const data = await fetchBookDetails(bookId);
+                let data;
+                if (/^\d+$/.test(bookId)) {
+                    const { data: libraryBook, error: libraryError } = await supabase
+                        .from("books")
+                        .select("*")
+                        .eq("id", bookId)
+                        .maybeSingle();
+
+                    if (libraryError) throw libraryError;
+                    if (!libraryBook) throw new Error("Book not found in the library catalog.");
+                    data = libraryBook;
+                } else {
+                    data = await fetchBookDetails(bookId);
+                }
                 setBook(data);
             } catch (error) {
                 console.error(error);
-                setError("Unable to load book details.");
+                setError(error.message || "Unable to load book details.");
             } finally {
                 setLoading(false);
             }
@@ -84,9 +98,9 @@ const BookDetails = () => {
                             {/* BOOK COVER */}
                             <div className="w-full md:w-80 shrink-0">
                                 <div className="bg-slate-50 rounded-2xl p-8 border border-slate-100 shadow-inner flex justify-center items-center aspect-3/4">
-                                    {book.covers?.[0] ? (
+                                    {book.cover_url || book.covers?.[0] ? (
                                         <img
-                                            src={`https://covers.openlibrary.org/b/id/${book.covers[0]}-L.jpg`}
+                                            src={book.cover_url || `https://covers.openlibrary.org/b/id/${book.covers[0]}-L.jpg`}
                                             alt={book.title}
                                             className="max-w-full max-h-full object-contain shadow-lg rounded-sm"
                                         />
@@ -112,9 +126,9 @@ const BookDetails = () => {
 
                                 <p className="text-slate-500 text-lg font-medium mb-8">
                                     by <span className="text-primary-container font-bold">
-                                        {book.author_name?.length
+                                        {book.author || (book.author_name?.length
                                             ? book.author_name.join(", ")
-                                            : "Unknown Author"}
+                                            : "Unknown Author")}
                                     </span>
                                 </p>
 
@@ -122,13 +136,13 @@ const BookDetails = () => {
                                     <div>
                                         <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Genre</p>
                                         <p className="font-bold text-slate-700 text-sm">
-                                            {book.subjects?.[0] || "Academic"}
+                                            {book.genre || book.subjects?.[0] || "Academic"}
                                         </p>
                                     </div>
                                     <div>
                                         <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Year</p>
                                         <p className="font-bold text-slate-700 text-sm">
-                                            {book.first_publish_date || "N/A"}
+                                            {book.first_publish_date || book.publisher || "N/A"}
                                         </p>
                                     </div>
                                     <div>
@@ -149,13 +163,15 @@ const BookDetails = () => {
                                 </div>
 
                                 <div className="flex flex-col sm:flex-row gap-4">
-                                    <Button
-                                        variant="primary"
-                                        className="px-8 py-4 shadow-lg shadow-indigo-100"
-                                        onClick={handleBorrowClick}
-                                    >
-                                        <FaBook className="mr-2" /> Borrow Material
-                                    </Button>
+                                    {book.id && (
+                                        <Button
+                                            variant="primary"
+                                            className="px-8 py-4 shadow-lg shadow-indigo-100"
+                                            onClick={handleBorrowClick}
+                                        >
+                                            <FaBook className="mr-2" /> Request Book
+                                        </Button>
+                                    )}
                                     <Button
                                         variant="secondary"
                                         className="px-8 py-4"

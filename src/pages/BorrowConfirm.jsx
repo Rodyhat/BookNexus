@@ -6,18 +6,21 @@ import {
     FaCalendarAlt,
     FaCheckCircle,
 } from "react-icons/fa";
-import { BookContext } from "../context/myContext";
-import Button from "../components/Button";
+import { AuthContext, BookContext } from "../context/myContext";
+import Button from "../components/Button"; 
+import { supabase } from "../services/supabase";
+import toast from "react-hot-toast";
 
 const BorrowConfirm = () => {
     const { bookId } = useParams();
-    const { fetchBookDetails } = useContext(BookContext);
+    const { user } = useContext(AuthContext);
     const navigate = useNavigate();
 
     const [book, setBook] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
     const [loanPeriod, setLoanPeriod] = useState(14);
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
     // Fetch the exact book the user selected
     useEffect(() => {
@@ -32,23 +35,32 @@ const BorrowConfirm = () => {
                 setLoading(true);
                 setError("");
 
-                const data = await fetchBookDetails(bookId);
-
-                if (!data) {
-                    throw new Error("Book not found");
+                if (!/^\d+$/.test(bookId)) {
+                    throw new Error("Only books in the library catalog can be borrowed.");
                 }
 
+                const { data, error: bookError } = await supabase
+                    .from("books")
+                    .select("*")
+                    .eq("id", bookId)
+                    .maybeSingle();
+
+                if (bookError) {
+                    throw bookError;
+                }
+
+                if (!data) throw new Error("This book is not in the library catalog.");
                 setBook(data);
             } catch (err) {
                 console.error("Error loading book:", err);
-                setError("Unable to load book details.");
+                setError(err.message || "Unable to load book details.");
             } finally {
                 setLoading(false);
             }
         };
 
         getBook();
-    }, [bookId, fetchBookDetails]);
+    }, [bookId]);
 
     // Calculate dates
     const today = new Date();
@@ -64,21 +76,42 @@ const BorrowConfirm = () => {
         });
     };
 
-    const handleConfirm = () => {
-        const referenceId = `BNX-${Date.now()
-            .toString()
-            .slice(-8)}`;
+    const handleConfirm = async () => {
+        if (!user) {
+            toast.error("Please sign in again before submitting a request.");
+            return;
+        }
 
-        navigate("/borrow-success", {
-            state: {
-                book,
-                bookId,
-                loanPeriod,
-                borrowedDate: formatDate(today),
-                returnDate: formatDate(returnDate),
-                referenceId,
-            },
-        });
+        setIsSubmitting(true);
+        try {
+            const { error: requestError } = await supabase
+                .from("borrow_requests")
+                .insert({
+                user_id: user.id,
+                book_id: book.id,
+                status: "pending",
+                loan_period_days: loanPeriod,
+                return_date: returnDate.toISOString().slice(0, 10),
+                });
+
+            if (requestError) throw requestError;
+
+            navigate("/borrow-success", {
+                state: {
+                    book,
+                    bookId,
+                    loanPeriod,
+                    borrowedDate: formatDate(today),
+                    returnDate: formatDate(returnDate),
+                    referenceId: `BNX-${Date.now().toString().slice(-8)}`,
+                },
+            });
+        } catch (err) {
+            console.error("Borrow request error:", err);
+            toast.error(err.message || "Could not submit borrow request.");
+        } finally {
+            setIsSubmitting(false);
+        }
     };
 
     // Loading state
@@ -122,13 +155,9 @@ const BorrowConfirm = () => {
 
     const title = book.title || "Unknown Book";
 
-    const author = book.author_name?.length
-        ? book.author_name.join(", ")
-        : "Unknown Author";
+    const author = book.author || "Unknown Author";
 
-    const coverUrl = book.covers?.[0]
-        ? `https://covers.openlibrary.org/b/id/${book.covers[0]}-L.jpg`
-        : null;
+    const coverUrl = book.cover_url || null;
 
     return (
         <div className="min-h-screen bg-[#F9F9FF] font-sora px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
@@ -194,14 +223,14 @@ const BorrowConfirm = () => {
                                     by {author}
                                 </p>
 
-                                {book.first_publish_date && (
+                                {book.genre && (
                                     <div className="mt-5">
                                         <p className="text-xs uppercase tracking-wide text-gray-400">
-                                            Published
+                                            Genre
                                         </p>
 
                                         <p className="text-gray-700 mt-1 text-sm">
-                                            {book.first_publish_date}
+                                            {book.genre}
                                         </p>
                                     </div>
                                 )}
@@ -290,9 +319,10 @@ const BorrowConfirm = () => {
                         <div className="mt-6">
                             <Button
                                 onClick={handleConfirm}
+                                disabled={isSubmitting}
                                 className="w-full"
                             >
-                                Confirm Borrowing
+                                {isSubmitting ? "Submitting..." : "Confirm Borrowing"}
                             </Button>
                         </div>
 
