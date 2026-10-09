@@ -2,7 +2,7 @@ import { useContext } from "react";
 import { FiBell, FiMenu } from "react-icons/fi";
 import { AdminContext } from "../context/myContext";
 import logo from "/src/assets/logo.png";
-
+import { supabase } from "../services/supabase";
 const AdminHeader = () => {
     const { handleSidebar } = useContext(AdminContext);
 
@@ -38,7 +38,20 @@ const AdminHeader = () => {
                 <div className="flex items-center gap-4">
 
                     <FiBell size={20} />
+                    <button
+                        onClick={async () => {
+                            const { error } = await supabase.auth.signOut();
 
+                            if (error) {
+                                console.error("Sign out error:", error);
+                                return;
+                            }
+
+                            console.log("Signed out successfully");
+                        }}
+                    >
+                        Test Sign Out
+                    </button>
                     <div className="w-8 h-8 rounded-full border" />
 
                 </div>

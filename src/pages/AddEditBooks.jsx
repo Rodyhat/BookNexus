@@ -75,26 +75,19 @@ const AddEditBook = ({ onClose }) => {
             setPreviewUrl('');
         }
     }, [bookToEdit]);
-
-
     const handleDragOver = (e) => {
         e.preventDefault();
         setIsDragging(true);
     };
-
     const handleDragLeave = (e) => {
         e.preventDefault();
         setIsDragging(false);
     };
-
     const handleDrop = (e) => {
         e.preventDefault();
         setIsDragging(false);
-
         const file = e.dataTransfer.files[0];
-
         if (!file) return;
-
         // Allowed file types
         const allowedTypes = [
             'image/png',
@@ -102,22 +95,18 @@ const AddEditBook = ({ onClose }) => {
             'image/gif',
             'image/svg+xml'
         ];
-
         // Maximum file size: 2 MB
         const maxSize = 2 * 1024 * 1024;
-
         // Check file type
         if (!allowedTypes.includes(file.type)) {
             toast.error('Please select a PNG, JPG, GIF, or SVG image.');
             return;
         }
-
         // Check file size
         if (file.size > maxSize) {
             toast.error('Image is too large. Maximum size is 2 MB.');
             return;
         }
-
         // File is valid
         setSelectedFile(file);
         setPreviewUrl(URL.createObjectURL(file));
@@ -131,7 +120,6 @@ const AddEditBook = ({ onClose }) => {
             value
         });
     };
-
     const uploadBookCover = async () => {
         // No new image selected
         if (!selectedFile) {
@@ -163,38 +151,25 @@ const AddEditBook = ({ onClose }) => {
 
         return data.publicUrl;
     };
-
     const uploadEbook = async () => {
         // Keep the existing ebook when editing without replacing it.
         if (!selectedEbook) {
             return booksForm.ebookPath || null;
         }
-
         const fileName = `${Date.now()}.pdf`;
         const filePath = `books/${fileName}`;
-
         const { error } = await supabase.storage
             .from('book-files')
-        const {
-            data: { user },
-            error: userError
-        } = await supabase.auth.getUser();
-
-        console.log("Storage upload user:", user?.id)
-        console.log("Storage upload user error:", userError)
             .upload(filePath, selectedEbook, {
                 contentType: 'application/pdf',
                 upsert: false
             });
-
         if (error) {
             throw error;
         }
-
         // Save the storage path, not a public URL.
         return filePath;
     };
-
     // Submit Form
     const handleFormSubmit = async (e) => {
         e.preventDefault();
@@ -230,9 +205,7 @@ const AddEditBook = ({ onClose }) => {
             setIsLoading(false);
         }
     };
-
     const inputClasses = "w-full bg-slate-50 border border-slate-200 rounded-lg py-3 px-4 text-sm outline-none focus:border-[#3730A3] focus:ring-1 focus:ring-[#3730A3] transition-all font-medium text-slate-700 placeholder:text-slate-400";
-
     const labelClasses = "text-[11px] font-black tracking-widest uppercase mb-1.5 block text-slate-400";
     return (
         <div className="bg-[#F9F9FF] font-sora min-h-screen p-4 sm:p-8">
@@ -253,7 +226,6 @@ const AddEditBook = ({ onClose }) => {
                         </div>
                     </div>
                 </div>
-
                 {/* Form */}
                 <form onSubmit={handleFormSubmit} className="p-4 sm:p-6 space-y-6">
                     {/* Basic Information */}
