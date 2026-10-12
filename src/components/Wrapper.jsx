@@ -290,6 +290,22 @@ const Wrapper = ({ children }) => {
 
     const updateBook = async (updatedBook) => {
         try {
+            const { data: currentBook, error: currentBookError } = await supabase
+                .from("books")
+                .select("total_copies, available_copies")
+                .eq("id", updatedBook.id)
+                .single();
+
+            if (currentBookError) {
+                throw currentBookError;
+            }
+
+            const totalCopies = Number(updatedBook.totalCopies);
+            const checkedOutCopies = currentBook.total_copies - currentBook.available_copies;
+            if (totalCopies < checkedOutCopies) {
+                throw new Error(`This book has ${checkedOutCopies} active loan(s); total copies cannot be reduced below that number.`);
+            }
+
             const { data, error } = await supabase
                 .from("books")
                 .update({
@@ -299,8 +315,8 @@ const Wrapper = ({ children }) => {
                     description: updatedBook.description || null,
                     isbn: updatedBook.isbn || null,
                     publisher: updatedBook.publisher || null,
-                    total_copies: Number(updatedBook.totalCopies),
-                    available_copies: Number(updatedBook.totalCopies),
+                    total_copies: totalCopies,
+                    available_copies: totalCopies - checkedOutCopies,
                     cover_url: updatedBook.bookImage || null,
                     ebook_path: updatedBook.ebookPath || null
                 })

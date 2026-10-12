@@ -15,7 +15,7 @@ import Button from '../components/Button';
 const BorrowingSuccess = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const referenceId = location.state?.referenceId || "#BNX-4829-TL";
+  const referenceId = location.state?.referenceId;
 
   return (
     <div className="bg-[#F9F9FF] font-sora flex items-center justify-center p-6">
@@ -57,7 +57,7 @@ const BorrowingSuccess = () => {
         {/* Reference Number */}
         <div className="relative z-10 mt-12 pt-8 border-t border-slate-50">
           <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.25em]">
-            Reference ID: {referenceId}
+            {referenceId ? `Reference ID: ${referenceId}` : "Your request is available in My Books"}
           </p>
         </div>
 

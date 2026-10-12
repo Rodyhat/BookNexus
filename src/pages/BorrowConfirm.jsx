@@ -6,7 +6,7 @@ import {
     FaCalendarAlt,
     FaCheckCircle,
 } from "react-icons/fa";
-import { AuthContext, BookContext } from "../context/myContext";
+import { AuthContext } from "../context/myContext";
 import Button from "../components/Button"; 
 import { supabase } from "../services/supabase";
 import toast from "react-hot-toast";
@@ -65,9 +65,6 @@ const BorrowConfirm = () => {
     // Calculate dates
     const today = new Date();
 
-    const returnDate = new Date(today);
-    returnDate.setDate(today.getDate() + loanPeriod);
-
     const formatDate = (date) => {
         return date.toLocaleDateString("en-US", {
             month: "short",
@@ -81,18 +78,37 @@ const BorrowConfirm = () => {
             toast.error("Please sign in again before submitting a request.");
             return;
         }
+        if (Number(book.available_copies) < 1) {
+            toast.error("This book is currently unavailable.");
+            return;
+        }
 
         setIsSubmitting(true);
         try {
-            const { error: requestError } = await supabase
+            const { data: existingRequest, error: existingRequestError } = await supabase
+                .from("borrow_requests")
+                .select("id")
+                .eq("user_id", user.id)
+                .eq("book_id", book.id)
+                .in("status", ["pending", "approved"])
+                .limit(1)
+                .maybeSingle();
+
+            if (existingRequestError) throw existingRequestError;
+            if (existingRequest) {
+                throw new Error("You already have a pending request or approved loan for this book.");
+            }
+
+            const { data: request, error: requestError } = await supabase
                 .from("borrow_requests")
                 .insert({
-                user_id: user.id,
-                book_id: book.id,
-                status: "pending",
-                loan_period_days: loanPeriod,
-                return_date: returnDate.toISOString().slice(0, 10),
-                });
+                    user_id: user.id,
+                    book_id: book.id,
+                    status: "pending",
+                    loan_period_days: loanPeriod,
+                })
+                .select("id")
+                .single();
 
             if (requestError) throw requestError;
 
@@ -101,9 +117,7 @@ const BorrowConfirm = () => {
                     book,
                     bookId,
                     loanPeriod,
-                    borrowedDate: formatDate(today),
-                    returnDate: formatDate(returnDate),
-                    referenceId: `BNX-${Date.now().toString().slice(-8)}`,
+                    referenceId: `BNX-${request.id}`,
                 },
             });
         } catch (err) {
@@ -117,7 +131,7 @@ const BorrowConfirm = () => {
     // Loading state
     if (loading) {
         return (
-            <div className=" bg-[#F9F9FF] flex items-center justify-center px-4">
+            <div className="min-h-screen bg-[#F9F9FF] flex items-center justify-center px-4">
                 <div className="text-center">
                     <div className="w-10 h-10 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
                     <p className="text-gray-600 font-medium">
@@ -265,7 +279,7 @@ const BorrowConfirm = () => {
 
                                 <div>
                                     <p className="text-xs text-gray-400 uppercase tracking-wide">
-                                        Borrow Date
+                                        Request Date
                                     </p>
 
                                     <p className="font-semibold text-gray-900 text-sm sm:text-base">
@@ -306,11 +320,11 @@ const BorrowConfirm = () => {
 
                             <div>
                                 <p className="text-xs text-gray-400 uppercase tracking-wide">
-                                    Return Date
+                                    Estimated return date after approval
                                 </p>
 
                                 <p className="font-bold text-gray-900">
-                                    {formatDate(returnDate)}
+                                    Set when the request is approved
                                 </p>
                             </div>
                         </div>
@@ -319,16 +333,20 @@ const BorrowConfirm = () => {
                         <div className="mt-6">
                             <Button
                                 onClick={handleConfirm}
-                                disabled={isSubmitting}
+                                disabled={isSubmitting || Number(book.available_copies) < 1}
                                 className="w-full"
                             >
-                                {isSubmitting ? "Submitting..." : "Confirm Borrowing"}
+                                {isSubmitting
+                                    ? "Submitting..."
+                                    : Number(book.available_copies) < 1
+                                        ? "Currently Unavailable"
+                                        : "Submit Borrow Request"}
                             </Button>
                         </div>
 
                         <p className="text-xs text-gray-400 text-center mt-4 leading-relaxed">
-                            By confirming, you agree to return the book on or
-                            before the selected return date.
+                            If approved, your loan period and due date will start
+                            from the approval date.
                         </p>
                     </div>
                 </div>

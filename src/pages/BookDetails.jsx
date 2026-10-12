@@ -16,6 +16,8 @@ const BookDetails = () => {
     const [book, setBook] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
+    const isCatalogBook = /^\d+$/.test(bookId || "");
+    const isAvailable = isCatalogBook && Number(book?.available_copies) > 0;
 
     useEffect(() => {
         const getBookDetails = async () => {
@@ -119,8 +121,8 @@ const BookDetails = () => {
                                     <h1 className="text-3xl md:text-4xl font-black text-slate-800 tracking-tight leading-tight">
                                         {book.title}
                                     </h1>
-                                    <span className="bg-green-50 text-green-600 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border border-green-100">
-                                        Available
+                                    <span className={`${isAvailable ? "bg-green-50 text-green-600 border-green-100" : "bg-red-50 text-red-600 border-red-100"} px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border`}>
+                                        {!isCatalogBook ? "Not in library" : isAvailable ? "Available" : "Unavailable"}
                                     </span>
                                 </div>
 
@@ -168,8 +170,9 @@ const BookDetails = () => {
                                             variant="primary"
                                             className="px-8 py-4 shadow-lg shadow-indigo-100"
                                             onClick={handleBorrowClick}
+                                            disabled={!isAvailable}
                                         >
-                                            <FaBook className="mr-2" /> Request Book
+                                            <FaBook className="mr-2" /> {!isCatalogBook ? "Library copy required" : isAvailable ? "Request Book" : "Unavailable"}
                                         </Button>
                                     )}
                                     <Button
