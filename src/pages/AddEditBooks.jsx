@@ -1,5 +1,5 @@
 import React, { useContext, useEffect, useReducer, useState } from 'react';
-import { MdCloudUpload, MdSave, MdOutlineLibraryBooks } from 'react-icons/md';
+import { MdCloudUpload, MdSave, MdOutlineLibraryBooks, MdSearch } from 'react-icons/md';
 import { BookContext } from '../context/myContext';
 import Button from '../components/Button';
 import { useNavigate, useLocation } from 'react-router-dom';
@@ -39,7 +39,7 @@ const bookFormReducer = (state, action) => {
 const AddEditBook = ({ onClose }) => {
     const navigate = useNavigate();
     const location = useLocation();
-    const { addBook, updateBook } = useContext(BookContext);
+    const { addBook, updateBook, searchOpenLibrary } = useContext(BookContext);
     // Detect if we are in Edit Mode based on data passed via navigate() state
     const bookToEdit = location.state?.bookToEdit;
     const isEditMode = !!bookToEdit;
@@ -49,6 +49,9 @@ const AddEditBook = ({ onClose }) => {
     const [selectedEbook, setSelectedEbook] = useState(null);
     const [previewUrl, setPreviewUrl] = useState('');
     const [isDragging, setIsDragging] = useState(false);
+    const [openLibraryQuery, setOpenLibraryQuery] = useState('');
+    const [openLibraryResults, setOpenLibraryResults] = useState([]);
+    const [isSearchingOpenLibrary, setIsSearchingOpenLibrary] = useState(false);
     // Populate form when editing or reset when adding
     useEffect(() => {
         if (bookToEdit) {
@@ -119,6 +122,46 @@ const AddEditBook = ({ onClose }) => {
             field: name,
             value
         });
+    };
+    const handleOpenLibrarySearch = async () => {
+        setIsSearchingOpenLibrary(true);
+        setOpenLibraryResults([]);
+
+        try {
+            const results = await searchOpenLibrary(openLibraryQuery);
+            setOpenLibraryResults(results);
+            if (results.length === 0) {
+                toast.error('No matching books were found.');
+            }
+        } catch (error) {
+            console.error('Open Library search failed:', error);
+            toast.error(error.message || 'Could not search Open Library.');
+        } finally {
+            setIsSearchingOpenLibrary(false);
+        }
+    };
+    const importOpenLibraryBook = (book) => {
+        const coverUrl = book.cover_i
+            ? `https://covers.openlibrary.org/b/id/${book.cover_i}-M.jpg`
+            : '';
+
+        dispatchBookForm({
+            type: 'SET_FORM',
+            payload: {
+                title: book.title || '',
+                author_name: book.author_name?.join(', ') || '',
+                genre: book.subject?.[0] || '',
+                isbn: book.isbn?.[0] || '',
+                publisher: book.publisher?.[0] || '',
+                description: book.first_sentence?.join(' ') || '',
+                bookImage: coverUrl,
+                ebookPath: '',
+            },
+        });
+        setSelectedFile(null);
+        setSelectedEbook(null);
+        setPreviewUrl(coverUrl);
+        toast.success('Book details imported. Review them and set your own copy count and ebook.');
     };
     const uploadBookCover = async () => {
         // No new image selected
@@ -228,6 +271,73 @@ const AddEditBook = ({ onClose }) => {
                 </div>
                 {/* Form */}
                 <form onSubmit={handleFormSubmit} className="p-4 sm:p-6 space-y-6">
+                    {!isEditMode && (
+                        <section className="rounded-xl border border-indigo-100 bg-indigo-50/40 p-4 sm:p-5">
+                            <h2 className="font-bold text-slate-800">Import book details from Open Library</h2>
+                            <p className="mt-1 text-sm text-slate-600">
+                                Search by title, author, or ISBN. Importing fills in catalog details only; set the number of copies and upload an ebook you are authorized to lend separately.
+                            </p>
+                            <div className="mt-4 flex flex-col sm:flex-row gap-2">
+                                <input
+                                    type="search"
+                                    value={openLibraryQuery}
+                                    onChange={(e) => setOpenLibraryQuery(e.target.value)}
+                                    onKeyDown={(e) => {
+                                        if (e.key === 'Enter') {
+                                            e.preventDefault();
+                                            handleOpenLibrarySearch();
+                                        }
+                                    }}
+                                    placeholder="Search title, author, or ISBN"
+                                    className={inputClasses}
+                                />
+                                <Button
+                                    type="button"
+                                    variant="secondary"
+                                    disabled={isSearchingOpenLibrary}
+                                    onClick={handleOpenLibrarySearch}
+                                    className="shrink-0"
+                                >
+                                    <MdSearch className="mr-2" />
+                                    {isSearchingOpenLibrary ? 'Searching...' : 'Search'}
+                                </Button>
+                            </div>
+                            {openLibraryResults.length > 0 && (
+                                <ul className="mt-4 divide-y divide-slate-200 rounded-lg border border-slate-200 bg-white">
+                                    {openLibraryResults.map((book) => (
+                                        <li
+                                            key={book.key}
+                                            className="flex flex-col sm:flex-row sm:items-center gap-3 p-3"
+                                        >
+                                            {book.cover_i ? (
+                                                <img
+                                                    src={`https://covers.openlibrary.org/b/id/${book.cover_i}-S.jpg`}
+                                                    alt=""
+                                                    className="h-16 w-12 rounded object-cover"
+                                                />
+                                            ) : (
+                                                <div className="h-16 w-12 rounded bg-slate-100" />
+                                            )}
+                                            <div className="min-w-0 flex-1">
+                                                <p className="font-bold text-slate-800">{book.title}</p>
+                                                <p className="text-sm text-slate-500">
+                                                    {book.author_name?.join(', ') || 'Unknown author'}
+                                                    {book.first_publish_year ? ` · ${book.first_publish_year}` : ''}
+                                                </p>
+                                            </div>
+                                            <Button
+                                                type="button"
+                                                variant="secondary"
+                                                onClick={() => importOpenLibraryBook(book)}
+                                            >
+                                                Import details
+                                            </Button>
+                                        </li>
+                                    ))}
+                                </ul>
+                            )}
+                        </section>
+                    )}
                     {/* Basic Information */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-5 sm:gap-6">
                         <div className="md:col-span-2">

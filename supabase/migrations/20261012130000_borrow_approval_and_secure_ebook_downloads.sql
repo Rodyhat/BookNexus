@@ -1,6 +1,4 @@
 ALTER TABLE public.borrow_requests
-    ADD COLUMN IF NOT EXISTS loan_period_days integer NOT NULL DEFAULT 14,
-    ADD COLUMN IF NOT EXISTS approved_at timestamptz,
     ADD COLUMN IF NOT EXISTS return_date date,
     ADD COLUMN IF NOT EXISTS returned_at timestamptz;
 
@@ -60,7 +58,7 @@ CREATE POLICY borrow_requests_create_pending_own
     WITH CHECK (
         user_id = (SELECT auth.uid())
         AND status = 'pending'
-        AND approved_at IS NULL
+        AND decided_at IS NULL
         AND return_date IS NULL
         AND loan_period_days IN (7, 14, 21)
         AND EXISTS (
@@ -118,13 +116,15 @@ BEGIN
 
         UPDATE public.borrow_requests
         SET status = 'returned',
+            decided_at = COALESCE(decided_at, now()),
             returned_at = now()
         WHERE id = request_row.id;
     ELSIF request_row.status <> 'pending' THEN
         RAISE EXCEPTION 'Only pending requests can be reviewed.';
     ELSIF p_decision = 'rejected' THEN
         UPDATE public.borrow_requests
-        SET status = 'rejected'
+        SET status = 'rejected',
+            decided_at = now()
         WHERE id = request_row.id;
     ELSE
         SELECT available_copies
@@ -143,7 +143,7 @@ BEGIN
 
         UPDATE public.borrow_requests
         SET status = 'approved',
-            approved_at = now(),
+            decided_at = now(),
             return_date = (current_date + request_row.loan_period_days)
         WHERE id = request_row.id;
     END IF;
@@ -194,6 +194,8 @@ WHERE id = 'book-files';
 
 DROP POLICY IF EXISTS book_files_approved_download ON storage.objects;
 DROP POLICY IF EXISTS book_files_download_requires_approval ON storage.objects;
+DROP POLICY IF EXISTS "TEST authenticated upload" ON storage.objects;
+DROP POLICY IF EXISTS "Allow upload book covers" ON storage.objects;
 
 CREATE POLICY book_files_approved_download
     ON storage.objects

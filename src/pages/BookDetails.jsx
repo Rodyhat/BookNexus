@@ -8,22 +8,25 @@ import { saveRedirect } from "../utils/borrowRedirect";
 import { supabase } from "../services/supabase";
 
 const BookDetails = () => {
-    const { fetchBookDetails } = useContext(BookContext);
+    const { fetchBookDetails, libraryBooks } = useContext(BookContext);
     const { isAuthenticated } = useContext(AuthContext)
     const { bookId } = useParams();
     const navigate = useNavigate();
 
     const [book, setBook] = useState(null);
+    const [catalogMatches, setCatalogMatches] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
-    const isCatalogBook = /^\d+$/.test(bookId || "");
+    const isCatalogBook = /^\d+$/.test(String(book?.id ?? ""));
     const isAvailable = isCatalogBook && Number(book?.available_copies) > 0;
 
     useEffect(() => {
+        let cancelled = false;
         const getBookDetails = async () => {
             try {
                 setLoading(true);
                 setError("");
+                setCatalogMatches([]);
                 let data;
                 if (/^\d+$/.test(bookId)) {
                     const { data: libraryBook, error: libraryError } = await supabase
@@ -37,20 +40,45 @@ const BookDetails = () => {
                     data = libraryBook;
                 } else {
                     data = await fetchBookDetails(bookId);
+
+                    const normalize = (value) => value
+                        ?.toLowerCase()
+                        .replace(/[^a-z0-9]/g, "");
+                    const titleMatches = libraryBooks.filter(
+                        (libraryBook) => normalize(libraryBook.title) === normalize(data.title)
+                    );
+                    const externalAuthors = (data.author_name || []).map(normalize).filter(Boolean);
+                    const authorMatches = titleMatches.filter((libraryBook) => {
+                        const catalogAuthors = (libraryBook.author || "")
+                            .split(/,|&|\band\b/i)
+                            .map(normalize)
+                            .filter(Boolean);
+                        return externalAuthors.some((author) => catalogAuthors.includes(author));
+                    });
+
+                    const matches = authorMatches.length > 0 ? authorMatches : titleMatches;
+                    if (matches.length === 1) {
+                        data = matches[0];
+                    } else if (matches.length > 1 && !cancelled) {
+                        setCatalogMatches(matches);
+                    }
                 }
-                setBook(data);
+                if (!cancelled) setBook(data);
             } catch (error) {
                 console.error(error);
-                setError(error.message || "Unable to load book details.");
+                if (!cancelled) setError(error.message || "Unable to load book details.");
             } finally {
-                setLoading(false);
+                if (!cancelled) setLoading(false);
             }
         };
         if (bookId) getBookDetails();
-    }, [bookId, fetchBookDetails]);
+        return () => {
+            cancelled = true;
+        };
+    }, [bookId, fetchBookDetails, libraryBooks]);
 
     const handleBorrowClick = () => {
-        const borrowDestination = `/borrow-confirm/${bookId}`;
+        const borrowDestination = `/borrow-confirm/${book.id}`;
 
         if (!isAuthenticated) {
             // Save the borrow destination so it survives
@@ -95,7 +123,49 @@ const BookDetails = () => {
                         </div>
                     )}
 
-                    {!loading && !error && book && (
+                    {!loading && !error && catalogMatches.length > 1 && (
+                        <div>
+                            <h1 className="text-2xl md:text-3xl font-black text-slate-800">
+                                {book?.title || "Choose a library copy"}
+                            </h1>
+                            <p className="mt-2 text-slate-600">
+                                We found multiple matching entries in your library. Choose the correct catalog entry to view its availability.
+                            </p>
+                            <div className="mt-6 grid gap-4 md:grid-cols-2">
+                                {catalogMatches.map((match) => (
+                                    <article
+                                        key={match.id}
+                                        className="rounded-xl border border-slate-200 p-5"
+                                    >
+                                        <h2 className="font-bold text-slate-800">{match.title}</h2>
+                                        <p className="mt-1 text-sm text-slate-600">
+                                            {match.author || "Unknown author"}
+                                        </p>
+                                        {match.publisher && (
+                                            <p className="mt-1 text-sm text-slate-500">
+                                                Publisher: {match.publisher}
+                                            </p>
+                                        )}
+                                        <p className={`mt-3 text-sm font-semibold ${Number(match.available_copies) > 0 ? "text-green-700" : "text-red-600"}`}>
+                                            {Number(match.available_copies) > 0
+                                                ? `${match.available_copies} ${Number(match.available_copies) === 1 ? "copy" : "copies"} available`
+                                                : "No copies currently available"}
+                                        </p>
+                                        <Button
+                                            type="button"
+                                            variant="outline"
+                                            className="mt-4"
+                                            onClick={() => navigate(`/bookdetails/${match.id}`)}
+                                        >
+                                            View this catalog entry
+                                        </Button>
+                                    </article>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+
+                    {!loading && !error && book && catalogMatches.length <= 1 && (
                         <div className="flex flex-col md:flex-row items-start gap-10 lg:gap-16">
                             {/* BOOK COVER */}
                             <div className="w-full md:w-80 shrink-0">

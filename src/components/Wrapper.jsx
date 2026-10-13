@@ -196,6 +196,24 @@ const Wrapper = ({ children }) => {
         fetchBooks(query, nextPage);
     };
 
+    const searchOpenLibrary = async (query) => {
+        const normalizedQuery = query.trim();
+        if (!normalizedQuery) {
+            throw new Error("Enter a title, author, or ISBN to search Open Library.");
+        }
+
+        const { data } = await axios.get("https://openlibrary.org/search.json", {
+            params: {
+                q: normalizedQuery,
+                limit: 8,
+                fields: "key,title,author_name,first_publish_year,isbn,publisher,subject,cover_i,first_sentence",
+            },
+            timeout: 10000,
+        });
+
+        return data.docs || [];
+    };
+
     const fetchBookDetails = useCallback(async (workId) => {
         try {
             if (!workId) {
@@ -377,6 +395,7 @@ const Wrapper = ({ children }) => {
                 books,
                 changeSearch,
                 loadMore,
+                searchOpenLibrary,
                 fetchBookDetails,
                 addBook,
                 updateBook,

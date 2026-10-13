@@ -26,9 +26,9 @@ const UserBooks = () => {
 
         const { data, error } = await supabase
             .from("borrow_requests")
-            .select("id, user_id, book_id, status, loan_period_days, created_at, approved_at, return_date")
+            .select("id, user_id, book_id, status, loan_period_days, requested_at, decided_at, return_date")
             .eq("user_id", user.id)
-            .order("created_at", { ascending: false });
+            .order("requested_at", { ascending: false });
 
         if (error) {
             console.error("Unable to load your borrow requests:", error);

@@ -14,8 +14,8 @@ const AdminBorrowers = () => {
         setIsLoading(true);
         const { data, error } = await supabase
             .from("borrow_requests")
-            .select("id, user_id, book_id, status, loan_period_days, created_at, approved_at, return_date")
-            .order("created_at", { ascending: false });
+            .select("id, user_id, book_id, status, loan_period_days, requested_at, decided_at, return_date")
+            .order("requested_at", { ascending: false });
 
         if (error) {
             console.error("Unable to load borrow requests:", error);
@@ -148,7 +148,7 @@ const AdminBorrowers = () => {
                                     <p className="text-xs text-slate-500">{request.book?.author || ""}</p>
                                 </td>
                                 <td className="px-5 py-4 text-sm text-slate-600">
-                                    {new Date(request.created_at).toLocaleDateString()}
+                                    {new Date(request.requested_at).toLocaleDateString()}
                                 </td>
                                 <td className="px-5 py-4 text-sm text-slate-600">
                                     {request.return_date ? new Date(`${request.return_date}T00:00:00`).toLocaleDateString() : `After ${request.loan_period_days} days`}
