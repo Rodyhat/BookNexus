@@ -90,7 +90,7 @@ const BorrowConfirm = () => {
                 .select("id")
                 .eq("user_id", user.id)
                 .eq("book_id", book.id)
-                .in("status", ["pending", "approved"])
+                .in("status", ["pending", "approved", "return_requested"])
                 .limit(1)
                 .maybeSingle();
 

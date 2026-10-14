@@ -14,7 +14,7 @@ const AdminBorrowers = () => {
         setIsLoading(true);
         const { data, error } = await supabase
             .from("borrow_requests")
-            .select("id, user_id, book_id, status, loan_period_days, requested_at, decided_at, return_date")
+            .select("id, user_id, book_id, status, loan_period_days, requested_at, decided_at, return_date, return_requested_at")
             .order("requested_at", { ascending: false });
 
         if (error) {
@@ -90,6 +90,7 @@ const AdminBorrowers = () => {
         pending: "bg-amber-50 text-amber-700",
         approved: "bg-green-50 text-green-700",
         rejected: "bg-red-50 text-red-700",
+        return_requested: "bg-sky-50 text-sky-700",
         returned: "bg-slate-100 text-slate-700",
     };
 
@@ -101,7 +102,7 @@ const AdminBorrowers = () => {
                         Borrow Requests
                     </h1>
                     <p className="text-slate-500 text-xs sm:text-sm font-medium">
-                        Review requests and approve or reject them.
+                        Approve requests and confirm borrower return requests.
                     </p>
                 </div>
                 <Button variant="secondary" onClick={loadRequests} disabled={isLoading}>
@@ -155,7 +156,7 @@ const AdminBorrowers = () => {
                                 </td>
                                 <td className="px-5 py-4">
                                     <span className={`rounded-full px-3 py-1 text-xs font-bold capitalize ${statusStyles[request.status] || "bg-slate-100 text-slate-700"}`}>
-                                        {request.status}
+                                        {request.status.replaceAll("_", " ")}
                                     </span>
                                 </td>
                                 <td className="px-5 py-4">
@@ -176,13 +177,13 @@ const AdminBorrowers = () => {
                                                 Reject
                                             </Button>
                                         </div>
-                                    ) : request.status === "approved" ? (
+                                    ) : request.status === "approved" || request.status === "return_requested" ? (
                                         <Button
                                             variant="secondary"
                                             disabled={updatingId === request.id}
                                             onClick={() => updateRequest(request, "returned")}
                                         >
-                                            Mark returned
+                                            {request.status === "return_requested" ? "Confirm return" : "Mark returned"}
                                         </Button>
                                     ) : <span className="text-xs text-slate-400">No action available</span>}
                                 </td>

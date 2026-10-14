@@ -10,6 +10,7 @@ const UserBooks = () => {
     const [requests, setRequests] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
     const [downloadingId, setDownloadingId] = useState(null);
+    const [returningId, setReturningId] = useState(null);
     const navigate = useNavigate();
 
     const loadRequests = useCallback(async () => {
@@ -26,7 +27,7 @@ const UserBooks = () => {
 
         const { data, error } = await supabase
             .from("borrow_requests")
-            .select("id, user_id, book_id, status, loan_period_days, requested_at, decided_at, return_date")
+            .select("id, user_id, book_id, status, loan_period_days, requested_at, decided_at, return_date, return_requested_at, returned_at")
             .eq("user_id", user.id)
             .order("requested_at", { ascending: false });
 
@@ -105,13 +106,34 @@ const UserBooks = () => {
         }
     };
 
+    const requestReturn = async (request) => {
+        setReturningId(request.id);
+        try {
+            const { error } = await supabase.rpc("request_borrow_return", {
+                p_request_id: String(request.id),
+            });
+            if (error) throw error;
+            toast.success("Return request sent to the library team.");
+            await loadRequests();
+        } catch (error) {
+            console.error("Unable to request book return:", error);
+            toast.error(error.message || "Unable to request this book return.");
+        } finally {
+            setReturningId(null);
+        }
+    };
+
     const currentRequests = requests.filter((request) =>
-        activeTab === "history" ? request.status !== "pending" : request.status === "pending" || request.status === "approved"
+        activeTab === "history"
+            ? request.status === "rejected" || request.status === "returned"
+            : request.status === "pending" || request.status === "approved" || request.status === "return_requested"
     );
 
     const getStatusClass = (status) => {
         if (status === "approved") return "bg-green-50 text-green-700 border-green-100";
         if (status === "rejected") return "bg-red-50 text-red-700 border-red-100";
+        if (status === "return_requested") return "bg-sky-50 text-sky-700 border-sky-100";
+        if (status === "returned") return "bg-slate-100 text-slate-700 border-slate-200";
         return "bg-amber-50 text-amber-700 border-amber-100";
     };
 
@@ -129,7 +151,7 @@ const UserBooks = () => {
                         onClick={() => setActiveTab("active")}
                         className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-bold transition-all ${activeTab === "active" ? "bg-primary-container text-white shadow-md" : "text-slate-500 hover:text-slate-700"}`}
                     >
-                        <MdMenuBook size={18} /> Requests ({requests.filter((request) => request.status === "pending" || request.status === "approved").length})
+                        <MdMenuBook size={18} /> Requests ({requests.filter((request) => request.status === "pending" || request.status === "approved" || request.status === "return_requested").length})
                     </button>
                     <button
                         type="button"
@@ -166,22 +188,40 @@ const UserBooks = () => {
                                     <div className="space-y-2 mt-3">
                                         <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full border text-[10px] font-black uppercase ${getStatusClass(request.status)}`}>
                                             {request.status === "approved" && <MdCheckCircle size={13} />}
-                                            {request.status}
+                                            {request.status.replaceAll("_", " ")}
                                         </span>
-                                        {request.status === "approved" && request.return_date && (
+                                        {(request.status === "approved" || request.status === "return_requested") && request.return_date && (
                                             <p className="flex items-center gap-1.5 text-xs text-slate-500">
                                                 <MdAccessTime size={15} />
                                                 Due {new Date(`${request.return_date}T00:00:00`).toLocaleDateString()}
                                             </p>
                                         )}
+                                        {request.status === "return_requested" && (
+                                            <p className="text-xs text-sky-700">Return requested. Waiting for admin confirmation.</p>
+                                        )}
+                                        {request.status === "returned" && request.returned_at && (
+                                            <p className="text-xs text-slate-500">
+                                                Returned {new Date(request.returned_at).toLocaleDateString()}
+                                            </p>
+                                        )}
                                         {request.status === "approved" && (
-                                            <Button
-                                                className="w-full"
-                                                disabled={downloadingId === request.id}
-                                                onClick={() => downloadBook(request)}
-                                            >
-                                                {downloadingId === request.id ? "Preparing..." : "Download ebook"}
-                                            </Button>
+                                            <div className="grid gap-2">
+                                                <Button
+                                                    className="w-full"
+                                                    disabled={downloadingId === request.id}
+                                                    onClick={() => downloadBook(request)}
+                                                >
+                                                    {downloadingId === request.id ? "Preparing..." : "Download ebook"}
+                                                </Button>
+                                                <Button
+                                                    variant="secondary"
+                                                    className="w-full"
+                                                    disabled={returningId === request.id}
+                                                    onClick={() => requestReturn(request)}
+                                                >
+                                                    {returningId === request.id ? "Requesting..." : "Request return"}
+                                                </Button>
+                                            </div>
                                         )}
                                     </div>
                                 </div>

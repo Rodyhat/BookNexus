@@ -1,12 +1,33 @@
-import React, { useContext } from 'react';
+import React, { useContext, useEffect } from 'react';
 import { Outlet } from 'react-router-dom';
 import { FiX } from 'react-icons/fi';
 import AdminSidebar from './AdminSidebar';
 import AdminHeader from './AdminHeader';
 import { AdminContext } from '../context/myContext';
+import { supabase } from '../services/supabase';
+import toast from 'react-hot-toast';
 
 const AdminLayout = () => {
     const { sidebarOpen, handleSidebar } = useContext(AdminContext);
+
+    useEffect(() => {
+        const channel = supabase
+            .channel('admin-return-requests')
+            .on(
+                'postgres_changes',
+                { event: 'UPDATE', schema: 'public', table: 'borrow_requests' },
+                ({ new: request }) => {
+                    if (request.status === 'return_requested') {
+                        toast('A borrower requested a return. Review it in Borrowers.');
+                    }
+                }
+            )
+            .subscribe();
+
+        return () => {
+            supabase.removeChannel(channel);
+        };
+    }, []);
 
     return (
         <div className="h-screen flex bg-[#F9F9FF] font-sora overflow-hidden">
