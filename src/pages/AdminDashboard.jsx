@@ -78,6 +78,17 @@ const AdminDashboard = () => {
         loadDashboard();
     }, [loadDashboard]);
 
+    const getActivityTime = (request) => new Date(
+        request.returned_at
+        || request.return_requested_at
+        || request.decided_at
+        || request.requested_at
+        || 0
+    ).getTime();
+    const recentRequests = [...requests].sort(
+        (first, second) => getActivityTime(second) - getActivityTime(first)
+    );
+
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     const activeLoans = requests.filter((request) =>
@@ -139,7 +150,7 @@ const AdminDashboard = () => {
                 </div>
             )}
             <div className="grid gap-5 lg:grid-cols-3">
-                <BorrowActivity requests={requests.slice(0, 5)} isLoading={isLoading} />
+                <BorrowActivity requests={recentRequests.slice(0, 5)} isLoading={isLoading} />
                 <div className="grid gap-5">
                     <QuickAction />
                     <TopCategories categories={categories} isLoading={isLoading} />
