@@ -6,7 +6,8 @@ import {
   MdErrorOutline,
   MdBook,
   MdLibraryBooks,
-  MdPersonOutline
+  MdPersonOutline,
+  MdHourglassEmpty
 } from 'react-icons/md';
 import Button from '../components/Button';
 import { Link, useNavigate } from 'react-router-dom';
@@ -67,6 +68,28 @@ const UserDashboard = () => {
     loadRequests();
   }, [loadRequests]);
 
+  useEffect(() => {
+    if (isAuthLoading || !user?.id) return undefined;
+
+    const channel = supabase
+      .channel(`user-borrow-activity-${user.id}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'borrow_requests',
+          filter: `user_id=eq.${user.id}`,
+        },
+        loadRequests
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [isAuthLoading, loadRequests, user?.id]);
+
   const today = new Date();
   today.setHours(0, 0, 0, 0);
   const weekFromToday = new Date(today);
@@ -82,13 +105,15 @@ const UserDashboard = () => {
     const dueDate = new Date(`${request.return_date}T00:00:00`);
     return dueDate >= today && dueDate <= weekFromToday;
   });
-  const completedLoans = requests.filter((request) =>
+  const totalBorrowed = requests.filter((request) =>
     request.status === 'approved' || request.status === 'return_requested' || request.status === 'returned'
   );
+  const pendingRequests = requests.filter((request) => request.status === 'pending');
   const stats = [
-    { label: 'BOOKS BORROWED', value: completedLoans.length, icon: MdBook, color: '#3730A3', bg: 'bg-indigo-50' },
+    { label: 'TOTAL BORROWED', value: totalBorrowed.length, icon: MdBook, color: '#3730A3', bg: 'bg-indigo-50' },
     { label: 'ACTIVE LOANS', value: activeRequests.length, icon: MdAccessTime, color: '#D97706', bg: 'bg-amber-50' },
     { label: 'OVERDUE', value: overdueRequests.length, icon: MdErrorOutline, color: '#DC2626', bg: 'bg-red-50' },
+    { label: 'PENDING REQUESTS', value: pendingRequests.length, icon: MdHourglassEmpty, color: '#B45309', bg: 'bg-amber-50' },
     { label: 'DUE THIS WEEK', value: dueThisWeek.length, icon: MdHistory, color: '#047857', bg: 'bg-emerald-50' },
   ];
   const recentActivity = useMemo(() => requests
@@ -160,7 +185,7 @@ const UserDashboard = () => {
             </div>
           </section>
           {/* ================= STATISTICS ================= */}
-          <section className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4 mb-10">
+          <section className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-5 md:gap-4 mb-10">
             {stats.map((stat) => (
               <div
                 key={stat.label}
