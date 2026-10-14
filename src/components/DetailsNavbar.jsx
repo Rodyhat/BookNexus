@@ -8,7 +8,7 @@ const DetailsNavbar = () => {
             <div className="w-full flex justify-between items-center page-container">
                 {/*Logo  */}
                 <Link className="md:w-15 md:h-15" to='/'>
-                    <img src="/src/assets/logo.png" alt="" className="w-15 h-15" />
+                    <img src="/logo.png" alt="BookNexus" className="w-15 h-15" />
                 </Link>
                 <div className="w-8 h-8 rounded-full border" />
             </div>

@@ -3,7 +3,6 @@ import Button from "../components/Button";
 import { FaArrowRight } from "react-icons/fa";
 import { useFormik } from "formik";
 import { useNavigate, useLocation } from "react-router-dom";
-import logo from "/src/assets/logo.png";
 import { useState, useContext } from "react";
 import { FiEye, FiEyeOff } from "react-icons/fi";
 import { AuthContext } from "../context/myContext";
@@ -95,7 +94,7 @@ const SignIn = () => {
                 <div className="flex justify-center flex-col items-center">
                     <div className="logo">
                         <img
-                            src={logo}
+                            src="/logo.png"
                             alt="BookNexus Logo"
                             className="size-15 object-contain"
                         />

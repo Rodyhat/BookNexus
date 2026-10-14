@@ -1,7 +1,6 @@
 import { Link, NavLink, useNavigate } from "react-router-dom";
 import { useContext } from "react";
 import { FiLogOut } from "react-icons/fi";
-import Logo from "/src/assets/logo.png";
 import { AuthContext } from "../context/myContext";
 
 const UserHeader = () => {
@@ -22,7 +21,7 @@ const UserHeader = () => {
                 {/* Logo */}
                 <Link to="/" className="shrink-0">
                     <img
-                        src={Logo}
+                        src="/logo.png"
                         alt="BookNexus"
                         className="w-12 h-12 md:w-14 md:h-14 object-contain"
                     />

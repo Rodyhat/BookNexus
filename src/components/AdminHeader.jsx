@@ -1,7 +1,6 @@
 import { useContext } from "react";
 import { FiBell, FiMenu } from "react-icons/fi";
 import { AdminContext } from "../context/myContext";
-import logo from "/src/assets/logo.png";
 import { supabase } from "../services/supabase";
 const AdminHeader = () => {
     const { handleSidebar } = useContext(AdminContext);
@@ -23,7 +22,7 @@ const AdminHeader = () => {
                     </button>
 
                     <img
-                        src={logo}
+                        src="/logo.png"
                         alt="BookNexus"
                         className="w-9 h-9"
                     />

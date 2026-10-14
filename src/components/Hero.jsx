@@ -8,7 +8,7 @@ const Hero = () => {
         <section className="mt-8 mb-10  gap-3 flex flex-col items-center">
             <div className="flex flex-col items-center gap-4 max-w-3xl w-full ">
                 <div className="">
-                    <img src="/src/assets/logo.png" alt="" className="w-35 h-35" />
+                    <img src="/logo.png" alt="BookNexus" className="w-35 h-35" />
                 </div>
                 <h1 className="font-bold font-heading leading-14 tracking-tight max-w-3xl text-2xl sm:text-3xl md:text-4xl lg:text-5xl ">Discover Your Next Great Read</h1>
                 <p className="text-[15px] md:text-[17px] text-light leading-7 font-normal text-center">

@@ -8,7 +8,7 @@ const TrendingNavbar = () => {
             <div className="w-full flex justify-between items-center page-container">
                 {/*Logo  */}
                 <div className="md:w-15 md:h-15">
-                    <img src="/src/assets/logo.png" alt="" className="w-15 h-15" />
+                    <img src="/logo.png" alt="BookNexus" className="w-15 h-15" />
                 </div>
                 {/* Navigation */}
                 <Link to='/'> <li className="flex gap-2 items-center text-primary-container"><FaArrowLeft />Back to Catalogue</li></Link>

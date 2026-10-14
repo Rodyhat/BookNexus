@@ -5,7 +5,6 @@ import { useNavigate, useLocation, Link } from "react-router-dom";
 import { FiUser, FiMail, FiLock, FiEye, FiEyeOff } from "react-icons/fi";
 import { MdPersonAdd } from "react-icons/md";
 import Button from "../components/Button";
-import logo from "/src/assets/logo.png";
 import { supabase } from "../services/supabase";
 import {
     saveRedirect,
@@ -147,7 +146,7 @@ const SignUp = () => {
                 {/* Logo & Header */}
                 <div className="flex flex-col items-center mb-6 text-center">
                     <img
-                        src={logo}
+                        src="/logo.png"
                         alt="BookNexus Logo"
                         className="w-16 h-16 mb-2 object-contain"
                     />
