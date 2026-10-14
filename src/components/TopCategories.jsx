@@ -26,7 +26,6 @@ const TopCategories = ({ categories = [], isLoading = false }) => {
                     ))}
                 </div>
             )}
-            </div>
         </section>
     );
 };

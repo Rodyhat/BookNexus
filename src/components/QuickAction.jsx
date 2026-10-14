@@ -1,5 +1,5 @@
-import { FiPlusSquare, FiUsers } from "react-icons/fi";
-import { MdLibraryBooks } from "react-icons/md";
+import { FiPlusSquare, FiUserPlus } from "react-icons/fi";
+import { MdQrCodeScanner } from "react-icons/md";
 import { useNavigate } from "react-router-dom";
 const QuickAction = () => {
     const navigate = useNavigate();
@@ -14,19 +14,13 @@ const QuickAction = () => {
                     <FiPlusSquare size={20} />
                     <span className="text-sm">Add Book</span>
                 </button>
-                <button
-                    className="text-black bg-border-light rounded-lg px-4 py-6 flex flex-col items-center"
-                    onClick={() => navigate('/admin/borrowers')}
-                >
-                    <FiUsers size={20} />
-                    <span className="text-sm">Borrowers</span>
+                <button className="text-black bg-border-light rounded-lg px-4 py-6 flex flex-col items-center">
+                    <FiUserPlus size={20} />
+                    <h6 className="text-sm">New Borrower</h6>
                 </button>
-                <button
-                    className="text-black bg-border-light rounded-lg p-4 py-6 flex flex-col items-center col-span-2"
-                    onClick={() => navigate('/admin/books')}
-                >
-                    <MdLibraryBooks size={20} />
-                    <span className="text-sm">Manage Books</span>
+                <button className="text-black bg-border-light rounded-lg p-4 py-6 flex flex-col items-center col-span-2">
+                    <MdQrCodeScanner size={20} />
+                    <h6 className="text-sm">Scan Return</h6>
                 </button>
             </div>
         </section>
