@@ -1,53 +1,34 @@
-import { FiMoreVertical, FiPlusSquare, FiUserPlus } from "react-icons/fi";
-import { MdQrCodeScanner } from "react-icons/md";
+const TopCategories = ({ categories = [], isLoading = false }) => {
+    const barColors = ["bg-primary-container", "bg-emerald-600", "bg-amber-500", "bg-rose-500"];
 
-const TopCategories = () => {
     return (
-        <section className="bg-white py-6 px-6 w-full col-span-1 rounded-[8px]">
-            <div className="flex justify-between">
-                <h3 className="font-heading text-lg font-semibold pb-6">Top Categories</h3>
-                <FiMoreVertical size={20} />
-            </div>
-            <div className="grid grid-cols-1 gap-3">
-                <div className="fiction">
-                    <div className="">
-                        <div className="flex justify-between pb-3">
-                            <h6>Fiction</h6>
-                            <span>42%</span>
+        <section className="w-full rounded-lg bg-white px-6 py-6">
+            <h3 className="pb-6 font-heading text-lg font-semibold">Catalog Genres</h3>
+            {isLoading ? (
+                <p className="text-sm text-slate-500">Loading genres...</p>
+            ) : categories.length === 0 ? (
+                <p className="text-sm text-slate-500">Genre breakdown will appear when books are added.</p>
+            ) : (
+                <div className="grid grid-cols-1 gap-4">
+                    {categories.map((category, index) => (
+                        <div key={category.name}>
+                            <div className="flex justify-between gap-3 pb-2 text-sm">
+                                <h6 className="truncate text-slate-700">{category.name}</h6>
+                                <span className="shrink-0 text-slate-500">{category.count} · {category.percentage}%</span>
+                            </div>
+                            <div className="h-2 w-full overflow-hidden rounded-full bg-slate-100">
+                                <div
+                                    className={`h-full ${barColors[index % barColors.length]}`}
+                                    style={{ width: `${category.percentage}%` }}
+                                />
+                            </div>
                         </div>
-                        <div className="w-full h-3 flex rounded-full overflow-hidden">
-                            <div className="w-[50%] bg-primary-container"></div>
-                            <div className="w-[50%] bg-border-light "></div>
-                        </div>
-                    </div>
+                    ))}
                 </div>
-                <div className="fiction">
-                    <div className="">
-                        <div className="flex justify-between pb-3">
-                            <h6>Non-Fiction</h6>
-                            <span>28%</span>
-                        </div>
-                        <div className="w-full h-3 flex rounded-full overflow-hidden">
-                            <div className="w-[40%] bg-primary-container"></div>
-                            <div className="w-[60%] bg-border-light "></div>
-                        </div>
-                    </div>
-                </div>
-                <div className="fiction">
-                    <div className="">
-                        <div className="flex justify-between pb-3">
-                            <h6>Science & Tech</h6>
-                            <span>15%</span>
-                        </div>
-                        <div className="w-full h-3 flex rounded-full overflow-hidden">
-                            <div className="w-[30%] bg-primary-container"></div>
-                            <div className="w-[70%] bg-border-light "></div>
-                        </div>
-                    </div>
-                </div>
-
+            )}
             </div>
         </section>
-    )
-}
+    );
+};
+
 export default TopCategories;

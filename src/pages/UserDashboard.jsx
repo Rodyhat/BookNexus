@@ -1,97 +1,130 @@
-import React from 'react';
+import { useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import {
   MdSearch,
-  MdQrCodeScanner,
   MdHistory,
-  MdFavoriteBorder,
   MdAccessTime,
   MdErrorOutline,
   MdBook,
-  MdDashboard,
-  MdLibraryBooks
+  MdLibraryBooks,
+  MdPersonOutline
 } from 'react-icons/md';
 import Button from '../components/Button';
 import { Link, useNavigate } from 'react-router-dom';
+import { AuthContext } from '../context/myContext';
+import { supabase } from '../services/supabase';
 
 const UserDashboard = () => {
   const navigate = useNavigate();
+  const { user, isLoading: isAuthLoading } = useContext(AuthContext);
+  const [requests, setRequests] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [loadError, setLoadError] = useState('');
+
+  const loadRequests = useCallback(async () => {
+    if (isAuthLoading) return;
+    if (!user?.id) {
+      setRequests([]);
+      setIsLoading(false);
+      return;
+    }
+
+    setIsLoading(true);
+    setLoadError('');
+    try {
+      const { data, error } = await supabase
+        .from('borrow_requests')
+        .select('id, book_id, status, requested_at, decided_at, return_date, return_requested_at, returned_at')
+        .eq('user_id', user.id)
+        .order('requested_at', { ascending: false });
+
+      if (error) throw error;
+
+      const bookIds = [...new Set((data || []).map((request) => request.book_id))];
+      let booksById = {};
+      if (bookIds.length) {
+        const { data: books, error: booksError } = await supabase
+          .from('books')
+          .select('id, title, author, cover_url')
+          .in('id', bookIds);
+        if (booksError) throw booksError;
+        booksById = Object.fromEntries((books || []).map((book) => [String(book.id), book]));
+      }
+
+      setRequests((data || []).map((request) => ({
+        ...request,
+        book: booksById[String(request.book_id)],
+      })));
+    } catch (error) {
+      console.error('Unable to load dashboard activity:', error);
+      setLoadError(error.message || 'Unable to load your borrowing activity.');
+      setRequests([]);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [isAuthLoading, user?.id]);
+
+  useEffect(() => {
+    loadRequests();
+  }, [loadRequests]);
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const weekFromToday = new Date(today);
+  weekFromToday.setDate(weekFromToday.getDate() + 7);
+  const activeRequests = requests.filter((request) =>
+    request.status === 'approved' || request.status === 'return_requested'
+  );
+  const overdueRequests = activeRequests.filter((request) =>
+    request.return_date && new Date(`${request.return_date}T00:00:00`) < today
+  );
+  const dueThisWeek = activeRequests.filter((request) => {
+    if (!request.return_date) return false;
+    const dueDate = new Date(`${request.return_date}T00:00:00`);
+    return dueDate >= today && dueDate <= weekFromToday;
+  });
+  const completedLoans = requests.filter((request) =>
+    request.status === 'approved' || request.status === 'return_requested' || request.status === 'returned'
+  );
   const stats = [
-    {
-      label: "BOOKS BORROWED",
-      value: 42,
-      icon: MdBook,
-      color: "#3730A3",
-      bg: "bg-indigo-50"
-    },
-    {
-      label: "ACTIVE LOANS",
-      value: 3,
-      icon: MdAccessTime,
-      color: "#D97706",
-      bg: "bg-amber-50"
-    },
-    {
-      label: "OVERDUE",
-      value: 1,
-      icon: MdErrorOutline,
-      color: "#DC2626",
-      bg: "bg-red-50"
-    }
+    { label: 'BOOKS BORROWED', value: completedLoans.length, icon: MdBook, color: '#3730A3', bg: 'bg-indigo-50' },
+    { label: 'ACTIVE LOANS', value: activeRequests.length, icon: MdAccessTime, color: '#D97706', bg: 'bg-amber-50' },
+    { label: 'OVERDUE', value: overdueRequests.length, icon: MdErrorOutline, color: '#DC2626', bg: 'bg-red-50' },
+    { label: 'DUE THIS WEEK', value: dueThisWeek.length, icon: MdHistory, color: '#047857', bg: 'bg-emerald-50' },
   ];
+  const recentActivity = useMemo(() => requests
+    .map((request) => {
+      const activityAt = request.returned_at || request.return_requested_at || request.decided_at || request.requested_at;
+      const descriptions = {
+        pending: 'Borrow request submitted',
+        approved: 'Loan approved',
+        rejected: 'Borrow request declined',
+        return_requested: 'Return requested',
+        returned: 'Book returned',
+      };
+      return { ...request, activityAt, description: descriptions[request.status] || request.status };
+    })
+    .sort((first, second) => new Date(second.activityAt) - new Date(first.activityAt))
+    .slice(0, 5), [requests]);
+  const firstName = user?.user_metadata?.full_name?.trim().split(/\s+/)[0]
+    || user?.user_metadata?.name?.trim().split(/\s+/)[0]
+    || user?.email?.split('@')[0]
+    || 'there';
 
-  const currentlyReading = [
-    {
-      id: 1,
-      title: "The Design of Everyday Things",
-      author: "Don Norman",
-      due: "Due in 2 days",
-      type: "overdue",
-      cover:
-        "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=200"
-    },
-    {
-      id: 2,
-      title: "Thinking, Fast and Slow",
-      author: "Daniel Kahneman",
-      due: "Due in 5 days",
-      type: "upcoming",
-      cover:
-        "https://images.unsplash.com/photo-1589998059171-988d887df646?auto=format&fit=crop&w=200"
-    },
-    {
-      id: 3,
-      title: "Information Architecture",
-      author: "Louis Rosenfeld",
-      due: "Due in 14 days",
-      type: "normal",
-      cover:
-        "https://images.unsplash.com/photo-1543002588-bfa74002ed7e?auto=format&fit=crop&w=200"
-    }
-  ];
-
-  const borrowingHistory = [
-    {
-      id: 1,
-      title: "Clean Code",
-      date: "Returned on Oct 12, 2023"
-    },
-    {
-      id: 2,
-      title: "Refactoring UI",
-      date: "Returned on Sep 28, 2023"
-    },
-    {
-      id: 3,
-      title: "The Pragmatic Programmer",
-      date: "Returned on Aug 15, 2023"
-    }
-  ];
+  const dueLabel = (request) => {
+    if (request.status === 'return_requested') return 'Return requested';
+    if (!request.return_date) return 'Due date unavailable';
+    const dueDate = new Date(`${request.return_date}T00:00:00`);
+    const daysUntilDue = Math.round((dueDate - today) / 86400000);
+    if (daysUntilDue < 0) return `Overdue by ${Math.abs(daysUntilDue)} day${Math.abs(daysUntilDue) === 1 ? '' : 's'}`;
+    if (daysUntilDue === 0) return 'Due today';
+    if (daysUntilDue === 1) return 'Due tomorrow';
+    return `Due in ${daysUntilDue} days`;
+  };
 
   const quickActions = [
-    { label: 'Search Books', icon: MdSearch },
-    { label: 'Scan ISBN', icon: MdQrCodeScanner },
-    { label: 'Loan History', icon: MdHistory },
-    { label: 'My Wishlist', icon: MdFavoriteBorder }
+    { label: 'Browse catalog', icon: MdSearch, to: '/trendinglist' },
+    { label: 'My books', icon: MdLibraryBooks, to: '/user/mybooks' },
+    { label: 'Account settings', icon: MdPersonOutline, to: '/user/profile' },
   ];
   return (
     <div className="min-h-screen bg-[#F9F9FF] font-sora">
@@ -104,10 +137,18 @@ const UserDashboard = () => {
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
               <div>
                 <h1 className="text-2xl md:text-3xl font-bold text-slate-900 mb-1">
-                  Welcome back, Alex.
+                  Welcome back, {firstName}.
                 </h1>
                 <p className="text-sm-label md:text-base text-slate-600">
-                  You have 2 books due this week.
+                  {isLoading || isAuthLoading
+                    ? 'Loading your borrowing activity...'
+                    : overdueRequests.length > 0
+                      ? `${overdueRequests.length} ${overdueRequests.length === 1 ? 'loan is' : 'loans are'} overdue.`
+                      : dueThisWeek.length > 0
+                        ? `${dueThisWeek.length} ${dueThisWeek.length === 1 ? 'book is' : 'books are'} due this week.`
+                        : activeRequests.length > 0
+                          ? `You have ${activeRequests.length} active ${activeRequests.length === 1 ? 'loan' : 'loans'}.`
+                          : 'You have no active loans. Browse the catalog to find your next book.'}
                 </p>
               </div>
               <Button
@@ -119,10 +160,10 @@ const UserDashboard = () => {
             </div>
           </section>
           {/* ================= STATISTICS ================= */}
-          <section className="grid grid-cols-1 sm:grid-cols-3 gap-3 md:gap-4 mb-10">
-            {stats.map((stat, idx) => (
+          <section className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4 mb-10">
+            {stats.map((stat) => (
               <div
-                key={idx}
+                key={stat.label}
                 className="bg-white p-4 md:p-5 lg:p-6 rounded-xl shadow-sm border-l-4 flex items-center gap-4"
                 style={{ borderLeftColor: stat.color }}
               >
@@ -138,12 +179,19 @@ const UserDashboard = () => {
                     {stat.label}
                   </p>
                   <p className="text-2xl md:text-3xl font-black text-slate-800">
-                    {stat.value}
+                    {loadError ? '—' : isLoading || isAuthLoading ? '...' : stat.value}
                   </p>
                 </div>
               </div>
             ))}
           </section>
+
+          {loadError && (
+            <div className="mb-8 flex flex-col gap-3 border-l-4 border-red-500 bg-red-50 p-4 text-sm text-red-800 sm:flex-row sm:items-center sm:justify-between">
+              <p>{loadError}</p>
+              <Button variant="secondary" onClick={loadRequests}>Try again</Button>
+            </div>
+          )}
 
           {/* ================= CURRENTLY BORROWED ================= */}
           <section className="mb-10">
@@ -153,68 +201,48 @@ const UserDashboard = () => {
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-5 lg:gap-6">
 
-              {currentlyReading.map((book) => (
-
-                <div
-                  key={book.id}
-                  className="bg-white border border-slate-200 rounded-xl p-4 md:p-5 flex flex-col justify-between h-full hover:bg-indigo-50/30 transition-colors group"
-                >
-
-                  {/* Book information */}
-                  <div>
-
-                    <div className="flex items-start mb-5">
-
-                      {/* Cover */}
-                      <div className="w-16 h-24 bg-slate-100 rounded overflow-hidden shrink-0 mr-4">
-                        <img
-                          src={book.cover}
-                          alt={book.title}
-                          className="w-full h-full object-cover"
-                        />
-                      </div>
-
-                      {/* Details */}
-                      <div className="flex-1 min-w-0">
-
-                        <h3 className="text-base font-semibold text-slate-900 leading-6 line-clamp-2 mb-1 group-hover:text-primary-container transition-colors">
-                          {book.title}
-                        </h3>
-
-                        <p className="text-sm text-slate-500 truncate">
-                          {book.author}
-                        </p>
-
-                      </div>
-
-                    </div>
-
-                  </div>
-
-
-                  {/* Bottom */}
-                  <div className="mt-auto border-t border-slate-100 pt-4 flex justify-between items-center gap-2">
-
-                    <span
-                      className={`px-2 py-1 rounded-full text-[11px] font-medium whitespace-nowrap ${book.type === 'overdue'
-                        ? 'bg-red-100 text-red-800'
-                        : book.type === 'upcoming'
-                          ? 'bg-amber-100 text-amber-800'
-                          : 'bg-green-100 text-green-800'
-                        }`}
-                    >
-                      {book.due}
-                    </span>
-
-                    <button className="text-primary-container text-sm font-semibold hover:underline shrink-0">
-                      Renew
-                    </button>
-
-                  </div>
-
+              {isLoading || isAuthLoading ? (
+                <p className="col-span-full py-8 text-center text-sm text-slate-500">Loading active loans...</p>
+              ) : activeRequests.length === 0 ? (
+                <div className="col-span-full border-y border-slate-200 bg-white px-6 py-10 text-center">
+                  <MdCheckCircleOutline className="mx-auto mb-3 text-3xl text-emerald-600" />
+                  <p className="font-semibold text-slate-800">No active loans</p>
+                  <p className="mt-1 text-sm text-slate-500">Approved books will appear here with their due dates.</p>
                 </div>
-
-              ))}
+              ) : activeRequests.map((request) => {
+                const isOverdue = request.return_date
+                  && new Date(`${request.return_date}T00:00:00`) < today;
+                return (
+                  <article
+                    key={request.id}
+                    className="flex h-full flex-col justify-between border border-slate-200 bg-white p-4 transition-colors hover:bg-indigo-50/30 md:p-5"
+                  >
+                    <div className="mb-5 flex items-start">
+                      <div className="mr-4 flex h-24 w-16 shrink-0 items-center justify-center overflow-hidden bg-slate-100">
+                        {request.book?.cover_url ? (
+                          <img src={request.book.cover_url} alt={request.book.title || 'Book cover'} className="h-full w-full object-cover" />
+                        ) : (
+                          <MdBook size={28} className="text-slate-300" />
+                        )}
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <h3 className="mb-1 line-clamp-2 text-base font-semibold leading-6 text-slate-900">
+                          {request.book?.title || 'Book no longer available'}
+                        </h3>
+                        <p className="truncate text-sm text-slate-500">{request.book?.author || 'Unknown author'}</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center justify-between gap-3 border-t border-slate-100 pt-4">
+                      <span className={`text-xs font-semibold ${isOverdue ? 'text-red-700' : request.status === 'return_requested' ? 'text-sky-700' : 'text-slate-600'}`}>
+                        {dueLabel(request)}
+                      </span>
+                      <Link to="/user/mybooks" className="shrink-0 text-sm font-semibold text-primary-container hover:underline">
+                        View loan
+                      </Link>
+                    </div>
+                  </article>
+                );
+              })}
 
             </div>
 
@@ -225,18 +253,21 @@ const UserDashboard = () => {
           <section className="mb-10">
 
             <h2 className="text-xl font-bold text-slate-800 mb-5 md:mb-6">
-              Borrowing History
+              Recent Activity
             </h2>
 
             <div className="bg-white border border-slate-200 rounded-xl overflow-hidden">
 
               <div className="divide-y divide-slate-100">
 
-                {borrowingHistory.map((item) => (
-
+                {isLoading || isAuthLoading ? (
+                  <p className="p-5 text-sm text-slate-500">Loading recent activity...</p>
+                ) : recentActivity.length === 0 ? (
+                  <p className="p-5 text-sm text-slate-500">Your borrow requests and returns will appear here.</p>
+                ) : recentActivity.map((item) => (
                   <div
                     key={item.id}
-                    className="p-4 flex items-center justify-between gap-4 hover:bg-indigo-50/30 transition-colors"
+                    className="flex items-center justify-between gap-4 border-b border-slate-100 p-4 last:border-b-0 hover:bg-indigo-50/30"
                   >
 
                     <div className="flex items-center gap-3 min-w-0">
@@ -249,19 +280,19 @@ const UserDashboard = () => {
                       <div className="min-w-0">
 
                         <p className="text-sm font-semibold text-slate-800 truncate">
-                          {item.title}
+                          {item.book?.title || 'Book no longer available'}
                         </p>
 
                         <p className="text-xs md:text-sm text-slate-500 truncate">
-                          {item.date}
+                          {item.description} · {item.activityAt ? new Date(item.activityAt).toLocaleDateString() : 'Date unavailable'}
                         </p>
 
                       </div>
 
                     </div>
 
-                    <span className="hidden md:inline-block bg-green-100 text-green-800 px-2 py-1 rounded-full text-[11px] font-medium shrink-0">
-                      Returned
+                    <span className="hidden shrink-0 rounded-full bg-slate-100 px-2 py-1 text-[11px] font-medium capitalize text-slate-700 md:inline-block">
+                      {item.status.replaceAll('_', ' ')}
                     </span>
 
                   </div>
@@ -282,16 +313,17 @@ const UserDashboard = () => {
               Quick Actions
             </h2>
 
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 md:gap-4">
 
-              {quickActions.map((action, i) => {
+              {quickActions.map((action) => {
 
                 const Icon = action.icon;
 
                 return (
-                  <button
-                    key={i}
-                    className="min-w-0 flex flex-col items-center justify-center p-4 md:p-6 bg-white rounded-xl border border-slate-100 shadow-sm hover:border-indigo-200 hover:bg-indigo-50/30 transition-all group"
+                  <Link
+                    key={action.to}
+                    to={action.to}
+                    className="min-w-0 flex flex-col items-center justify-center border border-slate-200 bg-white p-4 transition-colors hover:bg-indigo-50/30 md:p-6 group"
                   >
 
                     <Icon
@@ -303,7 +335,7 @@ const UserDashboard = () => {
                       {action.label}
                     </span>
 
-                  </button>
+                  </Link>
                 );
 
               })}
@@ -316,60 +348,6 @@ const UserDashboard = () => {
 
       </main>
 
-
-      {/* ================= MOBILE BOTTOM NAVIGATION ================= */}
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-md border-t border-slate-200 z-50 shadow-[0_-4px_20px_rgba(0,0,0,0.03)]">
-
-        <div className="flex justify-around items-center h-16">
-
-          <Link
-            to="/dashboard"
-            className="flex flex-col items-center justify-center w-full h-full text-primary-container"
-          >
-            <MdDashboard
-              size={23}
-              className="mb-1"
-            />
-
-            <span className="text-[10px] font-black uppercase tracking-tighter">
-              Dashboard
-            </span>
-          </Link>
-
-
-          <Link
-            to="/mybooks"
-            className="flex flex-col items-center justify-center w-full h-full text-slate-400 hover:text-primary-container transition-colors"
-          >
-            <MdLibraryBooks
-              size={23}
-              className="mb-1"
-            />
-
-            <span className="text-[10px] font-bold uppercase tracking-tighter">
-              My Books
-            </span>
-          </Link>
-
-
-          <Link
-            to="/profile"
-            className="flex flex-col items-center justify-center w-full h-full text-slate-400 hover:text-primary-container transition-colors"
-          >
-            <img
-              src="https://api.dicebear.com/7.x/avataaars/svg?seed=Felix"
-              className="w-6 h-6 rounded-full mb-1 grayscale opacity-70"
-              alt="Profile"
-            />
-
-            <span className="text-[10px] font-bold uppercase tracking-tighter">
-              Profile
-            </span>
-          </Link>
-
-        </div>
-
-      </nav>
 
     </div>
   );

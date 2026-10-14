@@ -1,54 +1,148 @@
+import { useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { FiAlertTriangle } from "react-icons/fi";
 import { MdCheckCircle, MdLibraryBooks, MdMenuBook } from "react-icons/md";
 import BorrowActivity from "../components/BorrowActivity";
 import QuickAction from "../components/QuickAction";
 import TopCategories from "../components/TopCategories";
-import { useContext } from "react";
-import { AdminContext } from "../context/myContext";
+import { AuthContext } from "../context/myContext";
+import { supabase } from "../services/supabase";
 
 const AdminDashboard = () => {
+    const { user } = useContext(AuthContext);
+    const [books, setBooks] = useState([]);
+    const [requests, setRequests] = useState([]);
+    const [isLoading, setIsLoading] = useState(true);
+    const [loadError, setLoadError] = useState("");
+
+    const loadDashboard = useCallback(async () => {
+        setIsLoading(true);
+        setLoadError("");
+
+        try {
+            const [booksResult, requestsResult] = await Promise.all([
+                supabase
+                    .from("books")
+                    .select("id, title, genre, total_copies, available_copies"),
+                supabase
+                    .from("borrow_requests")
+                    .select("id, user_id, book_id, status, requested_at, decided_at, return_date, return_requested_at, returned_at")
+                    .order("requested_at", { ascending: false }),
+            ]);
+
+            if (booksResult.error) throw booksResult.error;
+            if (requestsResult.error) throw requestsResult.error;
+
+            const bookIds = [...new Set((requestsResult.data || []).map((request) => request.book_id))];
+            const userIds = [...new Set((requestsResult.data || []).map((request) => request.user_id))];
+            let booksById = {};
+            let profilesById = {};
+
+            if (bookIds.length) {
+                const { data: requestedBooks, error } = await supabase
+                    .from("books")
+                    .select("id, title, author, cover_url")
+                    .in("id", bookIds);
+                if (error) throw error;
+                booksById = Object.fromEntries((requestedBooks || []).map((book) => [String(book.id), book]));
+            }
+
+            if (userIds.length) {
+                const { data: profiles, error } = await supabase
+                    .from("profiles")
+                    .select("*")
+                    .in("id", userIds);
+                if (error) {
+                    console.warn("Borrower profile details are unavailable:", error.message);
+                } else {
+                    profilesById = Object.fromEntries((profiles || []).map((profile) => [String(profile.id), profile]));
+                }
+            }
+
+            setBooks(booksResult.data || []);
+            setRequests((requestsResult.data || []).map((request) => ({
+                ...request,
+                book: booksById[String(request.book_id)],
+                borrower: profilesById[String(request.user_id)],
+            })));
+        } catch (error) {
+            console.error("Unable to load admin dashboard:", error);
+            setLoadError(error.message || "Unable to load dashboard data.");
+            setBooks([]);
+            setRequests([]);
+        } finally {
+            setIsLoading(false);
+        }
+    }, []);
+
+    useEffect(() => {
+        loadDashboard();
+    }, [loadDashboard]);
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const activeLoans = requests.filter((request) =>
+        request.status === "approved" || request.status === "return_requested"
+    );
+    const overdueLoans = activeLoans.filter((request) =>
+        request.return_date && new Date(`${request.return_date}T00:00:00`) < today
+    );
+    const availableCopies = books.reduce((total, book) => total + (Number(book.available_copies) || 0), 0);
+    const stats = [
+        { label: "CATALOG TITLES", value: books.length, icon: MdLibraryBooks, color: "#3730A3", bg: "bg-indigo-50" },
+        { label: "AVAILABLE COPIES", value: availableCopies, icon: MdCheckCircle, color: "#047857", bg: "bg-emerald-50" },
+        { label: "ACTIVE LOANS", value: activeLoans.length, icon: MdMenuBook, color: "#D97706", bg: "bg-amber-50" },
+        { label: "OVERDUE", value: overdueLoans.length, icon: FiAlertTriangle, color: "#DC2626", bg: "bg-red-50" },
+    ];
+    const categories = useMemo(() => {
+        const counts = books.reduce((result, book) => {
+            const genre = book.genre?.trim() || "Uncategorized";
+            result[genre] = (result[genre] || 0) + 1;
+            return result;
+        }, {});
+        const total = books.length || 1;
+        return Object.entries(counts)
+            .map(([name, count]) => ({ name, count, percentage: Math.round((count / total) * 100) }))
+            .sort((first, second) => second.count - first.count)
+            .slice(0, 4);
+    }, [books]);
+
+    const displayValue = (value) => loadError ? "—" : isLoading ? "..." : value.toLocaleString();
+
     return (
         <section className="w-full">
-            <div className="">
+            <div>
                 <h3 className="font-sora text-headline-lg font-bold">Overview</h3>
-                <p>System status and recent library activity.</p>
+                <p className="text-sm text-slate-500">
+                    {user?.user_metadata?.full_name
+                        ? `Welcome, ${user.user_metadata.full_name}. `
+                        : ""}
+                    Live catalog and borrowing activity.
+                </p>
             </div>
-            <div className="grid my-7 gap-5 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4">
-                <div className="bg-white p-6 w-full rounded-[8px] shadow-sm  lg:border-transparent transition-colors duration-600 lg:hover:border-primary-container border border-primary-container">
-                    <div className="flex items-center justify-between">
-                        <h5 className="text-body-sm py-5">TOTAL BOOKS</h5>
-                        <div className="w-8 h-8 rounded-[50%] text-primary-container flex items-center justify-center bg-surface-container-high"><MdLibraryBooks size={20} /></div>
+            <div className="my-7 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+                {stats.map(({ label, value, icon: Icon, color, bg }) => (
+                    <div key={label} className="flex items-center justify-between border border-slate-200 bg-white p-5 shadow-sm">
+                        <div>
+                            <h5 className="py-3 text-xs font-semibold text-slate-500">{label}</h5>
+                            <p className="font-heading text-3xl font-extrabold text-slate-900">{displayValue(value)}</p>
+                        </div>
+                        <div className={`flex h-10 w-10 items-center justify-center rounded-full ${bg}`} style={{ color }}>
+                            <Icon size={20} />
+                        </div>
                     </div>
-                    <h1 className="font-extrabold font-heading text-display">24,592</h1>
-                </div>
-                <div className='bg-white p-6 w-full rounded-[8px] shadow-sm border border-tertiary-container lg:border-transparent transition-colors duration-600 lg:hover:border-tertiary-container' >
-                    <div className="flex items-center justify-between">
-                        <h5 className="text-body-sm py-5">AVAILABLE</h5>
-                        <div className="w-8 h-8 rounded-[50%] text-tertiary-container flex items-center justify-center bg-tertiary-fixed/20"><MdCheckCircle size={20} /></div>
-                    </div>
-                    <h1 className="font-extrabold font-heading text-display">24,592</h1>
-                </div>
-                <div className="bg-white p-6 w-full rounded-[8px] shadow-sm border border-secondary-container lg:border-transparent transition-colors lg:hover:border-secondary-container duration-600">
-                    <div className="flex items-center gap-4 justify-between">
-                        <h5 className="text-body-sm py-5">BORROWED</h5>
-                        <div className="w-8 h-8 rounded-[50%] text-secondary-container flex items-center justify-center bg-[#FFFBEB]"><MdMenuBook size={20} /></div>
-                    </div>
-                    <h1 className="font-extrabold font-heading text-display">24,592</h1>
-                </div>
-                <div className="bg-white p-6 w-full rounded-[8px] shadow-sm border border-error lg:border-transparent transition-colors duration-600 lg:hover:border-error">
-                    <div className="flex items-center gap-4 justify-between">
-                        <h5 className="text-body-sm py-5">OVERDUE</h5>
-                        <div className="w-8 h-8 rounded-[50%] text-error flex items-center justify-center bg-[#FEEBEE]"><FiAlertTriangle size={20} /></div>
-                    </div>
-                    <h1 className="font-extrabold font-heading text-display">24,592</h1>
-                </div>
-
+                ))}
             </div>
+            {loadError && (
+                <div className="mb-6 flex flex-wrap items-center justify-between gap-3 border-l-4 border-red-600 bg-red-50 p-4 text-sm text-red-800">
+                    <p>{loadError}</p>
+                    <button type="button" onClick={loadDashboard} className="font-semibold underline">Retry</button>
+                </div>
+            )}
             <div className="grid gap-5 lg:grid-cols-3">
-                <BorrowActivity />
+                <BorrowActivity requests={requests.slice(0, 5)} isLoading={isLoading} />
                 <div className="grid gap-5">
                     <QuickAction />
-                    <TopCategories />
+                    <TopCategories categories={categories} isLoading={isLoading} />
                 </div>
             </div>
         </section>

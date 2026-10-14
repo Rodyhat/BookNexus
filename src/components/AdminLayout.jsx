@@ -34,11 +34,10 @@ const AdminLayout = () => {
 
             {/* Mobile Overlay */}
             <div
-                className={`fixed inset-0 bg-slate-900/50 z-40 lg:hidden transition-opacity duration-300 ${
-                    sidebarOpen
+                className={`fixed inset-0 bg-slate-900/50 z-40 lg:hidden transition-opacity duration-300 ${sidebarOpen
                         ? 'opacity-100'
                         : 'opacity-0 pointer-events-none'
-                }`}
+                    }`}
                 onClick={handleSidebar}
             />
 
@@ -46,10 +45,9 @@ const AdminLayout = () => {
             <aside
                 className={`fixed top-0 left-0 z-50 h-screen w-64 bg-white border-r border-indigo-50
                     transform transition-transform duration-300 ease-in-out
-                    ${
-                        sidebarOpen
-                            ? 'translate-x-0'
-                            : '-translate-x-full'
+                    ${sidebarOpen
+                        ? 'translate-x-0'
+                        : '-translate-x-full'
                     }
                     lg:translate-x-0`}
             >

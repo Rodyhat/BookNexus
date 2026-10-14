@@ -7,7 +7,7 @@ import {
     FaCheckCircle,
 } from "react-icons/fa";
 import { AuthContext } from "../context/myContext";
-import Button from "../components/Button"; 
+import Button from "../components/Button";
 import { supabase } from "../services/supabase";
 import toast from "react-hot-toast";
 
